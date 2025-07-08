@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MuseoApp"
 include(":app")
- 
+include(":UserDataModule")

@@ -17,6 +17,19 @@ public class UserController {
     @Inject
     private UserRepository userRepository;
 
+    @POST
+    @Path("/login")
+    public Response login(User user) {
+        // Chiamata placeholder per login
+        return Response.status(Response.Status.OK).build();
+    }
+
+    @POST
+    @Path("/register")
+    public Response register(User user) {
+        // Chiamata placeholder per register
+        return Response.status(Response.Status.CREATED).build();
+    }
     @GET
     public List<User> getAllUsers() {
         return userRepository.findAll();

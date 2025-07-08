@@ -7,7 +7,7 @@
 
     <persistence-unit name="UserPersistenceUnit" transaction-type="JTA">
         <!-- Nome del DataSource configurato in WildFly -->
-        <jta-data-source>java:/MySqlDS</jta-data-source>
+        <jta-data-source>java:/MySqlDS1</jta-data-source>
 
         <!-- Impostazioni Hibernate -->
         <properties>
