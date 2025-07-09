@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Dashboard"
+        android:id="@+id/home"
+        android:icon="@drawable/dashboard"/>
+
+    <item android:title="account"
+            android:id="@+id/account"
+            android:icon="@drawable/account"/>
+
+    <item android:title="Register"
+            android:id="@+id/register"
+            android:icon="@drawable/registration_24"/>
+
+    <item android:title="Location"
+            android:id="@+id/location"
+            android:icon="@drawable/location"/>
+
+    <item android:title="Fotocamera"
+            android:id="@+id/fotocamera"
+            android:icon="@drawable/fotocamera"/>
+
+</menu>
