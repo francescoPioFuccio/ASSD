@@ -23,3 +23,4 @@ rootProject.name = "MuseoApp"
 include(":app")
 include(":UserDataModule")
 include(":app1")
+include("UserDataModule2")
