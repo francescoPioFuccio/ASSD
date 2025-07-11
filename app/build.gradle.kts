@@ -40,7 +40,7 @@ android {
 }
 // ho aggiunto -> implementation(project(":UserDataModule"))
 dependencies {
-    implementation(project(":UserDataModule"))
+    implementation(project(":UserDataModule2"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
