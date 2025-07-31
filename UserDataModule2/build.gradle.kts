@@ -26,4 +26,14 @@ dependencies {
     // Significa che questa dipendenza serve per compilare, ma non verrà inclusa nel file finale
     // perché si presume che il server (WildFly) la fornirà.
     compileOnly("jakarta.platform:jakarta.jakartaee-api:10.0.0")
+
+    // --- NUOVE DIPENDENZE AGGIUNTE ---
+
+    // Dipendenza per BCrypt per l'hashing delle password
+    implementation("org.mindrot:jbcrypt:0.4") // Controlla su Maven Central per versioni più recenti se vuoi
+
+    // Dipendenza per GSON per la serializzazione/deserializzazione JSON
+    implementation("com.google.code.gson:gson:2.10.1") // Controlla su Maven Central per versioni più recenti
+
+    // --- FINE NUOVE DIPENDENZE ---
 }
