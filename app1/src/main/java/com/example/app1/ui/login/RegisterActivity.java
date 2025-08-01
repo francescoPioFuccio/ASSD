@@ -4,22 +4,22 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.app1.R;
 import com.example.app1.databinding.ActivityRegisterBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -43,48 +43,33 @@ public class RegisterActivity extends AppCompatActivity {
         final Button registerButton = binding.register;
         final ProgressBar loadingProgressBar = binding.loading;
 
-        registerViewModel.getRegisterFormState().observe(this, new Observer<RegisterFormState>() {
-            @Override
-            public void onChanged(@Nullable RegisterFormState registerFormState) {
-                if (registerFormState == null) {
-                    return;
-                }
-                registerButton.setEnabled(registerFormState.isDataValid());
+        // Osserva stato validazione form
+        registerViewModel.getRegisterFormState().observe(this, registerFormState -> {
+            if (registerFormState == null) return;
+            registerButton.setEnabled(registerFormState.isDataValid());
 
-                if (registerFormState.getNomeError()!= null) {
-                    nomeEditText.setError(getString(registerFormState.getNomeError()));
-                }
-                if (registerFormState.getCognomeError() != null) {
-                    cognomeEditText.setError(getString(registerFormState.getCognomeError()));
-                }
-                if (registerFormState.getEmailError() != null) {
-                    emailEditText.setError(getString(registerFormState.getEmailError()));
-                }
-                if (registerFormState.getPasswordError() != null) {
-                    passwordEditText.setError(getString(registerFormState.getPasswordError()));
-                }
-                if (registerFormState.getConfirmPasswordError() != null) {
-                    confirmPasswordEditText.setError(getString(registerFormState.getConfirmPasswordError()));
-                }
-            }
+            if (registerFormState.getNomeError() != null)
+                nomeEditText.setError(getString(registerFormState.getNomeError()));
+            if (registerFormState.getCognomeError() != null)
+                cognomeEditText.setError(getString(registerFormState.getCognomeError()));
+            if (registerFormState.getEmailError() != null)
+                emailEditText.setError(getString(registerFormState.getEmailError()));
+            if (registerFormState.getPasswordError() != null)
+                passwordEditText.setError(getString(registerFormState.getPasswordError()));
+            if (registerFormState.getConfirmPasswordError() != null)
+                confirmPasswordEditText.setError(getString(registerFormState.getConfirmPasswordError()));
         });
 
-        registerViewModel.getRegisterResult().observe(this, new Observer<RegisterResult>() {
-            @Override
-            public void onChanged(@Nullable RegisterResult registerResult) {
-                if (registerResult == null) {
-                    return;
-                }
-                loadingProgressBar.setVisibility(android.view.View.GONE);
-                if (registerResult.getError() != null) {
-                    showRegisterFailed(registerResult.getError());
-                }
-                if (registerResult.getSuccess() != null) {
-                    updateUiWithUser(registerResult.getSuccess());
-                }
-                setResult(Activity.RESULT_OK);
-                finish();
-            }
+        // Osserva risultato registrazione
+        registerViewModel.getRegisterResult().observe(this, registerResult -> {
+            if (registerResult == null) return;
+            loadingProgressBar.setVisibility(android.view.View.GONE);
+
+            if (registerResult.getError() != null) showRegisterFailed(registerResult.getError());
+            if (registerResult.getSuccess() != null) updateUiWithUser(registerResult.getSuccess());
+
+            setResult(Activity.RESULT_OK);
+            finish();
         });
 
         TextWatcher afterTextChangedListener = new TextWatcher() {
@@ -97,7 +82,8 @@ public class RegisterActivity extends AppCompatActivity {
                         cognomeEditText.getText().toString(),
                         emailEditText.getText().toString(),
                         passwordEditText.getText().toString(),
-                        confirmPasswordEditText.getText().toString());
+                        confirmPasswordEditText.getText().toString()
+                );
             }
         };
 
@@ -107,32 +93,56 @@ public class RegisterActivity extends AppCompatActivity {
         passwordEditText.addTextChangedListener(afterTextChangedListener);
         confirmPasswordEditText.addTextChangedListener(afterTextChangedListener);
 
-        passwordEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    loadingProgressBar.setVisibility(android.view.View.VISIBLE);
-                    registerViewModel.register(
-                            nomeEditText.getText().toString(),
-                            cognomeEditText.getText().toString(),
-                            emailEditText.getText().toString(),
-                            passwordEditText.getText().toString(),
-                            confirmPasswordEditText.getText().toString());
-                    return true;
-                }
-                return false;
+        passwordEditText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                attemptRegister();
+                return true;
             }
+            return false;
         });
 
-        registerButton.setOnClickListener(v -> {
-            loadingProgressBar.setVisibility(android.view.View.VISIBLE);
-            registerViewModel.register(
-                    nomeEditText.getText().toString(),
-                    cognomeEditText.getText().toString(),
-                    emailEditText.getText().toString(),
-                    passwordEditText.getText().toString(),
-                    confirmPasswordEditText.getText().toString());
-        });
+        registerButton.setOnClickListener(v -> attemptRegister());
+    }
+
+    private void attemptRegister() {
+        final ProgressBar loadingProgressBar = binding.loading;
+        loadingProgressBar.setVisibility(android.view.View.VISIBLE);
+
+        // Raccogli preferenze selezionate dai CheckBox
+        List<String> selectedMuseumPreferences = new ArrayList<>();
+        if (((CheckBox)findViewById(R.id.checkbox_arte)).isChecked())
+            selectedMuseumPreferences.add("Arte");
+        if (((CheckBox)findViewById(R.id.checkbox_scienza)).isChecked())
+            selectedMuseumPreferences.add("Scienza");
+        if (((CheckBox)findViewById(R.id.checkbox_storia)).isChecked())
+            selectedMuseumPreferences.add("Storia");
+        if (((CheckBox)findViewById(R.id.checkbox_tecnologia)).isChecked())
+            selectedMuseumPreferences.add("Tecnologia");
+        if (((CheckBox)findViewById(R.id.checkbox_archeologia)).isChecked())
+            selectedMuseumPreferences.add("Archeologia");
+        if (((CheckBox)findViewById(R.id.checkbox_naturalistica)).isChecked())
+            selectedMuseumPreferences.add("Storia Naturale");
+        if (((CheckBox)findViewById(R.id.checkbox_design)).isChecked())
+            selectedMuseumPreferences.add("Design");
+        if (((CheckBox)findViewById(R.id.checkbox_fotografia)).isChecked())
+            selectedMuseumPreferences.add("Fotografia");
+
+        if (selectedMuseumPreferences.isEmpty()) {
+            loadingProgressBar.setVisibility(android.view.View.GONE);
+            Toast.makeText(this, "Seleziona almeno un tipo di museo preferito", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String preferencesString = String.join(",", selectedMuseumPreferences);
+
+        registerViewModel.register(
+                binding.nome.getText().toString(),
+                binding.cognome.getText().toString(),
+                binding.email.getText().toString(),
+                binding.password.getText().toString(),
+                binding.confirmPassword.getText().toString(),
+                preferencesString
+        );
     }
 
     private void updateUiWithUser(RegisteredUserView model) {

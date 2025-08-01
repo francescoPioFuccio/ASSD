@@ -9,10 +9,13 @@ import android.util.Patterns;
 
 import com.example.app1.R;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,7 +41,9 @@ public class RegisterViewModel extends ViewModel {
         return registerResult;
     }
 
-    public void register(String nome, String cognome, String email, String password, String confirmPassword) {
+    public void register(String nome, String cognome, String email,
+                         String password, String confirmPassword,
+                         String museumPreferencesCsv) {
         executor.execute(() -> {
             if (!password.equals(confirmPassword)) {
                 registerResult.postValue(new RegisterResult(R.string.error_password_mismatch));
@@ -46,7 +51,6 @@ public class RegisterViewModel extends ViewModel {
             }
 
             OkHttpClient client = new OkHttpClient();
-
             String url = "http://10.0.2.2:8080/usermodule3/api/users/register";
 
             JSONObject json = new JSONObject();
@@ -56,7 +60,17 @@ public class RegisterViewModel extends ViewModel {
                 json.put("email", email);
                 json.put("password", password);
 
-                Log.d(TAG, "Sending registration data: " + json.toString());
+                // Trasforma CSV in JSONArray
+                JSONArray preferencesArray = new JSONArray();
+                if (museumPreferencesCsv != null && !museumPreferencesCsv.isEmpty()) {
+                    List<String> preferencesList = Arrays.asList(museumPreferencesCsv.split(","));
+                    for (String pref : preferencesList) {
+                        preferencesArray.put(pref.trim());
+                    }
+                }
+                json.put("museoPreferito", preferencesArray);
+
+                Log.d(TAG, "Sending registration data: " + json);
                 Log.d(TAG, "POST URL: " + url);
 
             } catch (JSONException e) {
@@ -66,10 +80,7 @@ public class RegisterViewModel extends ViewModel {
             }
 
             RequestBody body = RequestBody.create(json.toString(), MediaType.get("application/json"));
-            Request request = new Request.Builder()
-                    .url(url)
-                    .post(body)
-                    .build();
+            Request request = new Request.Builder().url(url).post(body).build();
 
             try (Response response = client.newCall(request).execute()) {
                 String responseBody = response.body() != null ? response.body().string() : "null";
@@ -88,7 +99,9 @@ public class RegisterViewModel extends ViewModel {
         });
     }
 
-    public void registerDataChanged(String nome, String cognome, String email, String password, String confirmPassword) {
+    public void registerDataChanged(String nome, String cognome,
+                                    String email, String password,
+                                    String confirmPassword) {
         if (nome == null || nome.trim().isEmpty()) {
             registerFormState.setValue(new RegisterFormState(R.string.invalid_name, null, null, null, null));
         } else if (cognome == null || cognome.trim().isEmpty()) {

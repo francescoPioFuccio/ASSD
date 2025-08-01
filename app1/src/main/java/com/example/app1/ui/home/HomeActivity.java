@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.app1.R;
+import com.example.app1.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -98,26 +99,48 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Chiude il drawer quando si seleziona una voce
         drawerLayout.closeDrawers();
 
-        int id = item.getItemId();
+        int id = item.getItemId(); // Ottieni l'ID della voce selezionata
 
         if (id == R.id.nav_profile) {
-            Toast.makeText(this, "Profilo cliccato", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_settings) {
-            Toast.makeText(this, "Impostazioni cliccato", Toast.LENGTH_SHORT).show();
+            // startActivity(new Intent(this, ProfileActivity.class));
+            Toast.makeText(this, "Profile Activity not implemented yet", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_preferences) {
-            Toast.makeText(this, "Preferenze musei cliccato", Toast.LENGTH_SHORT).show();
+            // startActivity(new Intent(this, PreferencesActivity.class));
+            Toast.makeText(this, "Preferences Activity not implemented yet", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_settings) {
+            // startActivity(new Intent(this, SettingsActivity.class));
+            Toast.makeText(this, "Settings Activity not implemented yet", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_help) {
-            Toast.makeText(this, "Guida cliccato", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_about) {
-            Toast.makeText(this, "Informazioni cliccato", Toast.LENGTH_SHORT).show();
+            // startActivity(new Intent(this, HelpActivity.class));
+            Toast.makeText(this, "Help Activity not implemented yet", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_history) {
+            // startActivity(new Intent(this, HistoryActivity.class));
+            Toast.makeText(this, "History Activity not implemented yet", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_bonus) {
+            // startActivity(new Intent(this, BonusPointsActivity.class));
+            Toast.makeText(this, "Bonus Points Activity not implemented yet", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_chatbot) {
+            // startActivity(new Intent(this, ChatBotActivity.class));
+            Toast.makeText(this, "ChatBot Activity not implemented yet", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_info) {
+            // startActivity(new Intent(this, InfoActivity.class));
+            Toast.makeText(this, "Info Activity not implemented yet", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_logout) {
-            Toast.makeText(this, "Logout cliccato", Toast.LENGTH_SHORT).show();
+            // logout logica
+            getSharedPreferences("app_prefs", MODE_PRIVATE).edit().clear().apply();
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
         } else {
+            // Se nessun ID corrisponde, restituisci false
             return false;
         }
 
+        // Se una voce è stata gestita, restituisci true
         return true;
     }
 }

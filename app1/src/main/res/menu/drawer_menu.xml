@@ -1,14 +1,52 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <group android:checkableBehavior="single">
 
-        <!-- TODO: Aggiungere le icone ai singoli item nel drawable e assegnarle con android:icon="@drawable/ic_nome_icona" -->
+        <item
+            android:id="@+id/nav_profile"
+            android:title="Profilo"
+            android:icon="@drawable/account" />
 
-        <item android:id="@+id/nav_profile" android:title="Profilo" />
-        <item android:id="@+id/nav_settings" android:title="Impostazioni" />
-        <item android:id="@+id/nav_preferences" android:title="Preferenze musei" />
-        <item android:id="@+id/nav_help" android:title="Guida" />
-        <item android:id="@+id/nav_about" android:title="Informazioni" />
-        <item android:id="@+id/nav_logout" android:title="Logout" />
+        <item
+            android:id="@+id/nav_preferences"
+            android:title="Preferenze Musei"
+            android:icon="@drawable/ic_preferences" />
+
+        <item
+            android:id="@+id/nav_settings"
+            android:title="Impostazioni"
+            android:icon="@drawable/ic_settings" />
+
+        <item
+            android:id="@+id/nav_help"
+            android:title="Guida"
+            android:icon="@drawable/ic_help" />
+
+        <item
+            android:id="@+id/nav_history"
+            android:title="Storia"
+            android:icon="@drawable/ic_history" />
+
+        <item
+            android:id="@+id/nav_bonus"
+            android:title="Punti Bonus"
+            android:icon="@drawable/ic_bonus_points" />
+
+        <item
+            android:id="@+id/nav_chatbot"
+            android:title="Chatbot"
+            android:icon="@drawable/ic_chatbot" />
+
+        <item
+            android:id="@+id/nav_info"
+            android:title="Informazioni"
+            android:icon="@drawable/ic_info" />
+
+        <item
+            android:id="@+id/nav_logout"
+            android:title="Logout"
+            android:icon="@drawable/ic_logout" />
 
     </group>
+
 </menu>
