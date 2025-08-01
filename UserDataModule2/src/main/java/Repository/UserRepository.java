@@ -17,7 +17,13 @@ public class UserRepository {
 
     @Transactional
     public void save(User user) {
-        em.persist(user);
+        // Se l'ID è nullo, è una nuova entità (persist). Altrimenti, è un aggiornamento (merge).
+        // Anche se save dovrebbe essere solo per nuove entità, merge può gestire entrambi.
+        if (user.getId() == null) {
+            em.persist(user);
+        } else {
+            em.merge(user); // Usa merge per gestire sia persist che update in modo flessibile
+        }
     }
 
     public User findById(Long id) {
@@ -37,6 +43,19 @@ public class UserRepository {
 
     @Transactional
     public void delete(User user) {
+        // Per eliminare un'entità, deve essere nello stato "managed" (gestito dal contesto di persistenza).
+        // Se l'entità 'user' passata al metodo proviene da un contesto diverso o è un'entità "detached",
+        // 'em.merge(user)' la ricollega al contesto corrente, rendendola "managed".
+        // Solo dopo può essere eliminata con 'em.remove()'.
         em.remove(em.merge(user));
+    }
+
+    // Puoi anche aggiungere un metodo delete per ID, che è spesso più comodo dal controller
+    @Transactional
+    public void deleteById(Long id) {
+        User user = findById(id); // Trova l'utente per ID
+        if (user != null) {
+            em.remove(user); // Se trovato, eliminalo
+        }
     }
 }
