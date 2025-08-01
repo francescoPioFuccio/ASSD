@@ -21,6 +21,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.app1.R;
 import com.example.app1.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
+import com.example.app1.ui.profilo.ProfileActivity;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -105,8 +106,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId(); // Ottieni l'ID della voce selezionata
 
         if (id == R.id.nav_profile) {
-            // startActivity(new Intent(this, ProfileActivity.class));
-            Toast.makeText(this, "Profile Activity not implemented yet", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, ProfileActivity.class));
+
         } else if (id == R.id.nav_preferences) {
             // startActivity(new Intent(this, PreferencesActivity.class));
             Toast.makeText(this, "Preferences Activity not implemented yet", Toast.LENGTH_SHORT).show();

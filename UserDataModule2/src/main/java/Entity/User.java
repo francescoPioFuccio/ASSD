@@ -16,6 +16,8 @@ public class User {
     private String password;
     private String nome;
     private String cognome;
+    private int puntiBonus = 0;
+
 
     // Campo per le preferenze con il convertitore
     @Column(columnDefinition = "TEXT") // Assicurati che la colonna nel DB supporti stringhe lunghe
@@ -32,6 +34,8 @@ public class User {
         this.nome = nome;
         this.cognome = cognome;
         this.museoPreferito = museoPreferito;
+        this.puntiBonus = 0;
+
     }
 
     // --- GETTER E SETTER PER TUTTI I CAMPI ---

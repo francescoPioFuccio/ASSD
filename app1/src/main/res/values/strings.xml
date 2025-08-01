@@ -14,7 +14,7 @@
     <string name="register_failed">Registrazione fallita</string>
     <string name="invalid_name">Nome non valido</string>
     <string name="invalid_surname">Cognome non valido</string>
-    ù<string name="navigation_drawer_open">Apri menu</string>
+    <string name="navigation_drawer_open">Apri menu</string>
     <string name="navigation_drawer_close">Chiudi menu</string>
 
     <string-array name="museum_types">

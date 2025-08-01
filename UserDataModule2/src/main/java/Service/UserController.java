@@ -1,5 +1,8 @@
 package Service;
-
+// aggiungere un richiest POST per modificare le preferenze
+// aggiungere un richiest GET per la storia della roba vista (tramite le quest---- Museo-Opera)
+// Buonus punto
+//
 import Entity.User;
 import Repository.UserRepository;
 
@@ -107,13 +110,6 @@ public class UserController {
         return userRepository.findById(id);
     }
 
-    @POST
-    public Response createUser(User user) {
-        String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
-        user.setPassword(hashedPassword);
-        userRepository.save(user);
-        return Response.status(Response.Status.CREATED).build();
-    }
 
     @GET
     @Path("/by-email")
