@@ -12,7 +12,7 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.MuseoApp">
         <activity
-                android:name=".ui.profilo.ProfileActivity"
+                android:name=".ui.profile.ProfileActivity"
                 android:exported="false" />
         <activity
                 android:name=".ui.home.HomeActivity"

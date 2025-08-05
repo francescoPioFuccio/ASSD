@@ -116,4 +116,74 @@ public class UserController {
     public User getUserByEmail(@QueryParam("email") String email) {
         return userRepository.findByEmail(email);
     }
+
+    @PUT
+    @Path("/{id}")
+    public Response updateProfile(@PathParam("id") Long id, User updatedUser) {
+        System.out.println("=== DEBUG UPDATE PROFILE ===");
+        System.out.println("ID utente da modificare: " + id);
+        System.out.println("Email: " + updatedUser.getEmail());
+        System.out.println("Nome: " + updatedUser.getNome());
+        System.out.println("Cognome: " + updatedUser.getCognome());
+        System.out.println("Preferenze: " + updatedUser.getMuseoPreferito());
+        System.out.println("==============================");
+
+        try {
+            // 1. Trova l'utente esistente
+            User existingUser = userRepository.findById(id);
+            if (existingUser == null) {
+                System.out.println("❌ Utente non trovato con ID: " + id);
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"message\": \"Utente non trovato.\"}")
+                        .build();
+            }
+
+            // 2. Validazione input
+            if (updatedUser.getEmail() == null || updatedUser.getEmail().isEmpty() ||
+                    updatedUser.getNome() == null || updatedUser.getNome().isEmpty() ||
+                    updatedUser.getCognome() == null || updatedUser.getCognome().isEmpty()) {
+                System.out.println("❌ Errore validazione: dati mancanti.");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"Email, nome e cognome sono obbligatori.\"}")
+                        .build();
+            }
+
+            // 3. Controlla se la nuova email è già utilizzata da un altro utente
+            if (!updatedUser.getEmail().equals(existingUser.getEmail())) {
+                User userWithSameEmail = userRepository.findByEmail(updatedUser.getEmail());
+                if (userWithSameEmail != null && !userWithSameEmail.getId().equals(id)) {
+                    System.out.println("❌ Email già utilizzata da un altro utente: " + updatedUser.getEmail());
+                    return Response.status(Response.Status.CONFLICT)
+                            .entity("{\"message\": \"Email già utilizzata da un altro utente.\"}")
+                            .build();
+                }
+            }
+
+            // 4. Aggiorna i campi (mantenendo la password esistente)
+            existingUser.setEmail(updatedUser.getEmail());
+            existingUser.setNome(updatedUser.getNome());
+            existingUser.setCognome(updatedUser.getCognome());
+            if (updatedUser.getMuseoPreferito() != null) {
+                existingUser.setMuseoPreferito(updatedUser.getMuseoPreferito());
+            }
+
+            // 5. Salva le modifiche
+            userRepository.save(existingUser);
+            System.out.println("✅ Profilo aggiornato con successo!");
+
+            // 6. Restituisci l'utente aggiornato (senza password)
+            existingUser.setPassword(null);
+            return Response.status(Response.Status.OK)
+                    .entity("{\"message\": \"Profilo aggiornato con successo!\", \"user\": " +
+                            gson.toJson(existingUser) + "}")
+                    .build();
+
+        } catch (Exception e) {
+            System.out.println("❌ Errore durante l'aggiornamento: " + e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Errore interno durante l'aggiornamento: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
 }

@@ -3,7 +3,6 @@ package com.example.app1.ui.home;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,7 +20,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.app1.R;
 import com.example.app1.ui.login.LoginActivity;
 import com.google.android.material.navigation.NavigationView;
-import com.example.app1.ui.profilo.ProfileActivity;
+import com.example.app1.ui.profile.ProfileActivity;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 

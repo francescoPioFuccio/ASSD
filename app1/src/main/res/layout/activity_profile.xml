@@ -1,89 +1,58 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:gravity="center_horizontal"
+        android:background="#6200EE"
+        tools:context=".ProfileActivity">
 
-    <LinearLayout
-            android:orientation="vertical"
-            android:padding="24dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Il Tuo Profilo"
+android:textSize="28sp"
+android:textColor="@android:color/white"
+android:textStyle="bold"
+android:layout_marginTop="32dp"
+android:layout_marginBottom="48dp" />
 
-        <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-            <TextView
-                    android:id="@+id/tvFullName"
-                    android:text=""
-                    android:textSize="20sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"/>
-            <Button
-                    android:id="@+id/btnEditFullName"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:text="Modifica Nome"
-                    android:contentDescription="Modifica il nome utente"
-            android:background="?android:attr/selectableItemBackground" />
+<TextView
+android:id="@+id/profileNameTextView"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Nome: "
+android:textSize="20sp"
+android:textColor="@android:color/white"
+android:layout_marginBottom="16dp" />
+
+<TextView
+android:id="@+id/profileEmailTextView"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Email: "
+android:textSize="20sp"
+android:textColor="@android:color/white"
+android:layout_marginBottom="16dp" />
+
+<TextView
+android:id="@+id/profileIdTextView"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="ID Utente: "
+android:textSize="20sp"
+android:textColor="@android:color/white"
+android:layout_marginBottom="32dp" />
+
+        <!-- Questo bottone sarà per tornare indietro o logout -->
+<Button
+android:id="@+id/backButton"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Torna Indietro"
+android:backgroundTint="@android:color/white"
+android:textColor="#6200EE" />
+
         </LinearLayout>
-
-        <!-- Email con icona di modifica -->
-        <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
-            <TextView
-                    android:id="@+id/tvEmail"
-                    android:text=""
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"/>
-            <Button
-                    android:id="@+id/btnEditEmail"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:text="Modifica Email"
-                    android:contentDescription="Modifica l'indirizzo email"
-            android:background="?android:attr/selectableItemBackground" />
-        </LinearLayout>
-
-        <!-- Preferenze -->
-        <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp">
-            <TextView
-                    android:text="Preferenze:"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"/>
-            <TextView
-                    android:id="@+id/tvPreferencesList"
-                    android:text=""
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"/>
-            <Button
-                    android:id="@+id/btnEditPreferences"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:text="Modifica Preferenze"
-                    android:contentDescription="Modifica le preferenze"
-            android:background="?android:attr/selectableItemBackground" />
-        </LinearLayout>
-
-        <!-- Contenitore per le preferenze (inizialmente vuoto, verrà popolato dinamicamente) -->
-        <LinearLayout
-                android:id="@+id/preferencesContainer"
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" />
-
-    </LinearLayout>
-</ScrollView>
