@@ -35,7 +35,6 @@ public class User {
         this.cognome = cognome;
         this.museoPreferito = museoPreferito;
         this.puntiBonus = 0;
-
     }
 
     // --- GETTER E SETTER PER TUTTI I CAMPI ---
@@ -86,5 +85,21 @@ public class User {
 
     public void setMuseoPreferito(List<String> museoPreferito) {
         this.museoPreferito = museoPreferito;
+    }
+
+    public void addPuntiBonus(int punti) {
+        this.puntiBonus += punti;
+    }
+    public int getPuntiBonus() {
+        return puntiBonus;
+    }
+    public void setPuntiBonus(int puntiBonus) {
+        this.puntiBonus = puntiBonus;
+    }
+    public void resetPuntiBonus() {
+        this.puntiBonus = 0;
+    }
+    public void removePuntiBonus(int punti) {
+        this.puntiBonus -= punti;
     }
 }

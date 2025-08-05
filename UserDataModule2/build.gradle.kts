@@ -22,6 +22,8 @@ dependencies {
     // MySQL Connector
     implementation("com.mysql:mysql-connector-j:8.0.33")
 
+    implementation("org.json:json:20240303")
+
     // Jakarta EE API (equivalente di "provided" in Gradle)
     // Significa che questa dipendenza serve per compilare, ma non verrà inclusa nel file finale
     // perché si presume che il server (WildFly) la fornirà.

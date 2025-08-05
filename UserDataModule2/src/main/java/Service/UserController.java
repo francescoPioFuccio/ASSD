@@ -4,13 +4,16 @@ package Service;
 // Buonus punto
 //
 import Entity.User;
-import Repository.UserRepository;
+import Repository.*;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import org.mindrot.jbcrypt.BCrypt;
 import com.google.gson.Gson;
@@ -117,6 +120,8 @@ public class UserController {
         return userRepository.findByEmail(email);
     }
 
+    // PUT per modificare il profilo
+    // ------------------------------------------------------FORSE DA CAMBIARE IL PEROCORSO UPDATE/ID
     @PUT
     @Path("/{id}")
     public Response updateProfile(@PathParam("id") Long id, User updatedUser) {
@@ -185,5 +190,29 @@ public class UserController {
                     .build();
         }
     }
+    //
+    @GET
+    @Path("/promozioni")
+    public Response getPromozioni() {
+        // Creazione di un JSONArray con più promozioni
+        JSONArray promotionsArray = new JSONArray();
 
+        // Aggiunta di alcune promozioni di esempio
+        SimulazionePromozione promozione1 = new SimulazionePromozione("Voucher Museo", 100, 0.2);
+        SimulazionePromozione promozione2 = new SimulazionePromozione("Sconto Mostra", 0, 0.05);
+
+        // Aggiunta delle promozioni al JSONArray
+        promotionsArray.put(new JSONObject(promozione1));
+        promotionsArray.put(new JSONObject(promozione2));
+
+        // Restituisce un array JSON di promozioni
+        return Response.status(Response.Status.OK)
+                .entity(promotionsArray.toString())
+                .build();
+    }
+    @POST
+    @Path("/promozione")
+    public String applicaPromozione(SimulazionePromozione promozione, int puntiUtente) {
+        return promozione.applicaPromozione(puntiUtente);
+    }
 }
