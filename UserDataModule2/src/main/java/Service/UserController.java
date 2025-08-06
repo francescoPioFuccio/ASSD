@@ -120,4 +120,51 @@ public class UserController {
     public User getUserByEmail(@QueryParam("email") String email) {
         return userRepository.findByEmail(email);
     }
+    @PUT
+    @Path("/{id}")
+    public Response updateUser(@PathParam("id") Long id, User updatedUser) {
+        try {
+            User existingUser = userRepository.findById(id);
+            if (existingUser == null) {
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"message\": \"Utente non trovato.\"}")
+                        .build();
+            }
+
+            // 🔁 Aggiorna tutti i campi se presenti
+            if (updatedUser.getNome() != null && !updatedUser.getNome().isEmpty()) {
+                existingUser.setNome(updatedUser.getNome());
+            }
+
+            if (updatedUser.getCognome() != null && !updatedUser.getCognome().isEmpty()) {
+                existingUser.setCognome(updatedUser.getCognome());
+            }
+
+            if (updatedUser.getEmail() != null && !updatedUser.getEmail().isEmpty()) {
+                existingUser.setEmail(updatedUser.getEmail());
+            }
+
+            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+                String hashedPassword = BCrypt.hashpw(updatedUser.getPassword(), BCrypt.gensalt());
+                existingUser.setPassword(hashedPassword);
+            }
+
+            if (updatedUser.getMuseoPreferito() != null && !updatedUser.getMuseoPreferito().isEmpty()) {
+                existingUser.setMuseoPreferito(updatedUser.getMuseoPreferito());
+            }
+
+            userRepository.update(existingUser);
+
+            return Response.status(Response.Status.OK)
+                    .entity("{\"message\": \"Utente aggiornato con successo.\"}")
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Errore durante l'aggiornamento: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
 }
