@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginVertical="4dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+        <!-- Icona a sinistra -->
+        <ImageView
+                android:id="@+id/promotionTypeIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/oval"
+                android:backgroundTint="#6200EE"
+                android:padding="8dp"
+                app:tint="@android:color/white"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:src="@android:drawable/star_on" />
+
+        <!-- Contenitore per Titolo e Sconto (al centro) -->
+        <LinearLayout
+                android:id="@+id/detailsContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/pointsContainer"
+                app:layout_constraintStart_toEndOf="@+id/promotionTypeIcon"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                    android:id="@+id/promotionTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Titolo Promozione"
+                    android:textColor="#333333"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+            <TextView
+                    android:id="@+id/promotionDiscount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Sconto: 20%"
+                    android:textColor="#4CAF50"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Contenitore per Punti e Pulsante (a destra) -->
+        <LinearLayout
+                android:id="@+id/pointsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|end"
+                android:minWidth="80dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                    android:id="@+id/promotionPointsRequired"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="100"
+                    android:textColor="#C62828"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+            <TextView
+                    android:id="@+id/promotionPointsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="punti"
+                    android:textColor="#666666"
+                    android:textSize="12sp" />
+
+            <TextView
+                    android:id="@+id/pointsMissingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:text="Ti mancano 50"
+                    android:textColor="#FF5722"
+                    android:textSize="10sp"
+                    android:visibility="gone" />
+
+            <Button
+                    android:id="@+id/redeemButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#4CAF50"
+                    android:paddingHorizontal="12dp"
+                    android:text="Riscatta"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:visibility="visible"
+                    tools:visibility="visible" />
+            <!-- Ho messo visibility a "visible" per vederlo subito nel preview,
+                 la tua logica Java lo gestirà correttamente (gone/visible) -->
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

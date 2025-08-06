@@ -1,0 +1,62 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <!-- CheckBox per ogni preferenza -->
+        <CheckBox
+                android:id="@+id/checkbox_arte"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Arte" />
+
+        <CheckBox
+                android:id="@+id/checkbox_scienza"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scienza" />
+
+        <CheckBox
+                android:id="@+id/checkbox_storia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Storia" />
+
+        <CheckBox
+                android:id="@+id/checkbox_tecnologia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tecnologia" />
+
+        <CheckBox
+                android:id="@+id/checkbox_archeologia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Archeologia" />
+
+        <CheckBox
+                android:id="@+id/checkbox_naturalistica"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Storia Naturale" />
+
+        <CheckBox
+                android:id="@+id/checkbox_design"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Design" />
+
+        <CheckBox
+                android:id="@+id/checkbox_fotografia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fotografia" />
+
+    </LinearLayout>
+</ScrollView>

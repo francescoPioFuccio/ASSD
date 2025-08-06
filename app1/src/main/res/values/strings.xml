@@ -14,7 +14,20 @@
     <string name="register_failed">Registrazione fallita</string>
     <string name="invalid_name">Nome non valido</string>
     <string name="invalid_surname">Cognome non valido</string>
-    ù<string name="navigation_drawer_open">Apri menu</string>
+    <string name="navigation_drawer_open">Apri menu</string>
     <string name="navigation_drawer_close">Chiudi menu</string>
+
+    <string-array name="museum_types">
+        <item>Seleziona un tipo di museo</item>
+        <item>Musei di Arte</item>
+        <item>Musei Storici</item>
+        <item>Musei di Scienze</item>
+        <item>Musei Archeologici</item>
+        <item>Musei Tecnologici</item>
+        <item>Musei di Storia Naturale</item>
+        <item>Musei Etnografici</item>
+        <item>Musei Interattivi</item>
+        <item>Musei Contemporanei</item>
+    </string-array>
 
 </resources>

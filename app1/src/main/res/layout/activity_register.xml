@@ -1,58 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/nome"
+    <LinearLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nome"
-        android:inputType="textPersonName" />
+        android:orientation="vertical"
+        android:padding="24dp">
 
-    <EditText
-        android:id="@+id/cognome"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Cognome"
-        android:inputType="textPersonName" />
+        <EditText
+            android:id="@+id/nome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nome"
+            android:inputType="textPersonName" />
 
-    <EditText
-        android:id="@+id/email"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Email"
-        android:inputType="textEmailAddress" />
+        <EditText
+            android:id="@+id/cognome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Cognome"
+            android:inputType="textPersonName" />
 
-    <EditText
-        android:id="@+id/password"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Password"
-        android:inputType="textPassword" />
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:inputType="textEmailAddress" />
 
-    <EditText
-        android:id="@+id/confirmPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Conferma Password"
-        android:inputType="textPassword" />
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:inputType="textPassword" />
 
-    <Button
-        android:id="@+id/register"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Registrati"
-        android:enabled="false" />
+        <EditText
+            android:id="@+id/confirmPassword"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="Conferma Password"
+            android:inputType="textPassword" />
 
-    <ProgressBar
-        android:id="@+id/loading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_gravity="center" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleziona i tuoi tipi di museo preferiti:"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"/>
 
-</LinearLayout>
+        <LinearLayout
+            android:id="@+id/preferences_checkbox_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <CheckBox
+                android:id="@+id/checkbox_arte"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Arte" />
+
+            <CheckBox
+                android:id="@+id/checkbox_scienza"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scienza" />
+
+            <CheckBox
+                android:id="@+id/checkbox_storia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Storia" />
+
+            <CheckBox
+                android:id="@+id/checkbox_tecnologia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tecnologia" />
+
+            <CheckBox
+                android:id="@+id/checkbox_archeologia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Archeologia" />
+
+            <CheckBox
+                android:id="@+id/checkbox_naturalistica"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Storia Naturale" />
+
+            <CheckBox
+                android:id="@+id/checkbox_design"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Design" />
+
+            <CheckBox
+                android:id="@+id/checkbox_fotografia"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fotografia" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/register"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Registrati"
+            android:enabled="false"
+            android:layout_marginTop="16dp" />
+
+        <ProgressBar
+            android:id="@+id/loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center" />
+
+    </LinearLayout>
+</ScrollView>

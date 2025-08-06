@@ -1,0 +1,42 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Tema scuro -->
+    <SwitchPreferenceCompat
+        android:key="dark_mode"
+        android:title="Modalità scura"
+        android:summary="Attiva o disattiva la modalità scura" />
+
+    <!-- Lingua -->
+    <ListPreference
+        android:key="language"
+        android:title="Lingua"
+        android:summary="Scegli la lingua dell'app"
+        android:entries="@array/language_options"
+        android:entryValues="@array/language_values"
+        android:defaultValue="it" />
+
+    <!-- Suoni -->
+    <SwitchPreferenceCompat
+        android:key="enable_sounds"
+        android:title="Suoni dell'app"
+        android:summary="Abilita o disabilita i suoni" />
+
+    <!-- Permessi posizione -->
+    <SwitchPreferenceCompat
+        android:key="enable_location"
+        android:title="Accesso alla posizione"
+        android:summary="Consenti l'accesso alla posizione" />
+
+    <!-- Permessi notifiche -->
+    <SwitchPreferenceCompat
+        android:key="enable_notifications"
+        android:title="Notifiche"
+        android:summary="Abilita o disabilita notifiche" />
+
+    <!-- Privacy -->
+    <Preference
+        android:key="privacy_policy"
+        android:title="Privacy Policy"
+        android:summary="Leggi l'informativa sulla privacy" />
+
+</PreferenceScreen>

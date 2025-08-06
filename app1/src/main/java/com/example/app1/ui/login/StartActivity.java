@@ -12,12 +12,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.app1.R; // Assicurati che R sia corretto per il tuo modulo app1
+import com.example.app1.util.ThemeHelper;
 
 
 public class StartActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start); // Collega al layout XML
 
@@ -55,4 +57,10 @@ public class StartActivity extends AppCompatActivity {
             });
         }
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ThemeHelper.applyTheme(this);
+    }
+
 }

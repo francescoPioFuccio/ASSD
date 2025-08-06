@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#6200EE"
+        tools:context=".ProfileActivity"
+        android:orientation="vertical">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center_horizontal">
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Il Tuo Profilo"
+                        android:textSize="28sp"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold"
+                        android:layout_marginTop="32dp"
+                        android:layout_marginBottom="48dp" />
+
+                <!-- Nome -->
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                                android:id="@+id/profileNameTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Nome: "
+                                android:textSize="18sp"
+                                android:textColor="@android:color/white" />
+
+                        <ImageView
+                                android:id="@+id/editNameIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@android:drawable/ic_menu_edit"
+                                android:background="?android:attr/selectableItemBackgroundBorderless"
+                                android:padding="4dp"
+                                android:tint="@android:color/white"
+                                android:clickable="true"
+                                android:focusable="true" />
+
+                </LinearLayout>
+
+                <!-- Cognome -->
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                                android:id="@+id/profileSurnameTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Cognome: "
+                                android:textSize="18sp"
+                                android:textColor="@android:color/white" />
+
+                        <ImageView
+                                android:id="@+id/editSurnameIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@android:drawable/ic_menu_edit"
+                                android:background="?android:attr/selectableItemBackgroundBorderless"
+                                android:padding="4dp"
+                                android:tint="@android:color/white"
+                                android:clickable="true"
+                                android:focusable="true" />
+
+                </LinearLayout>
+
+                <!-- Email -->
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                                android:id="@+id/profileEmailTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Email: "
+                                android:textSize="18sp"
+                                android:textColor="@android:color/white" />
+
+                        <ImageView
+                                android:id="@+id/editEmailIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@android:drawable/ic_menu_edit"
+                                android:background="?android:attr/selectableItemBackgroundBorderless"
+                                android:padding="4dp"
+                                android:tint="@android:color/white"
+                                android:clickable="true"
+                                android:focusable="true" />
+
+                </LinearLayout>
+
+                <!-- Preferenze Museo -->
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="16dp">
+
+                        <TextView
+                                android:id="@+id/profilePreferencesTextView"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Preferenze: "
+                                android:textSize="18sp"
+                                android:textColor="@android:color/white" />
+
+                        <ImageView
+                                android:id="@+id/editPreferencesIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@android:drawable/ic_menu_edit"
+                                android:background="?android:attr/selectableItemBackgroundBorderless"
+                                android:padding="4dp"
+                                android:tint="@android:color/white"
+                                android:clickable="true"
+                                android:focusable="true" />
+
+                </LinearLayout>
+
+                <!-- ID Utente (non modificabile) -->
+                <TextView
+                        android:id="@+id/profileIdTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="ID Utente: "
+                        android:textSize="18sp"
+                        android:textColor="@android:color/white"
+                        android:layout_marginBottom="32dp" />
+
+                <!-- Bottone Torna Indietro -->
+                <Button
+                        android:id="@+id/backButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Torna Indietro"
+                        android:backgroundTint="@android:color/white"
+                        android:textColor="#6200EE" />
+
+        </LinearLayout>
+</ScrollView>
