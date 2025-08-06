@@ -25,6 +25,10 @@ public class UserRepository {
             em.merge(user); // Usa merge per gestire sia persist che update in modo flessibile
         }
     }
+    public void update(User user) {
+        em.merge(user);
+    }
+
 
     public User findById(Long id) {
         return em.find(User.class, id);

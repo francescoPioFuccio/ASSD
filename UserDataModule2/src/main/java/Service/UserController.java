@@ -1,9 +1,5 @@
 package Service;
-// aggiungere un richiest POST per modificare le preferenze
-// aggiungere un richiest GET per la storia della roba vista (tramite le quest---- Museo-Opera)
-// Buonus punto
-//
-import Entity.SimulazionePromozione;
+
 import Entity.User;
 import Repository.*;
 import Util.*;

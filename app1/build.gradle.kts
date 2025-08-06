@@ -55,9 +55,10 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation(libs.androidx.preference) // <-- Corretto
 
+    // Dipendenza per androidx.preference
+    implementation("androidx.preference:preference:1.2.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-
 }

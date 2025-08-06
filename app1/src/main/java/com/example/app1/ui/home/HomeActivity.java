@@ -3,6 +3,7 @@ package com.example.app1.ui.home;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +21,8 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.app1.R;
 import com.example.app1.ui.login.LoginActivity;
 import com.example.app1.ui.promotion.PuntiBonusActivity;
+import com.example.app1.ui.settings.SettingsActivity;
+import com.example.app1.util.ThemeHelper;
 import com.google.android.material.navigation.NavigationView;
 import com.example.app1.ui.profile.ProfileActivity;
 
@@ -32,6 +35,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        ThemeHelper.applyTheme(this);
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
@@ -109,11 +113,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             startActivity(new Intent(this, ProfileActivity.class));
 
         } else if (id == R.id.nav_preferences) {
-            // startActivity(new Intent(this, PreferencesActivity.class));
-            Toast.makeText(this, "Preferences Activity not implemented yet", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, UserPreferencesActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_settings) {
-            // startActivity(new Intent(this, SettingsActivity.class));
-            Toast.makeText(this, "Settings Activity not implemented yet", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, SettingsActivity.class));
+
         } else if (id == R.id.nav_help) {
             // startActivity(new Intent(this, HelpActivity.class));
             Toast.makeText(this, "Help Activity not implemented yet", Toast.LENGTH_SHORT).show();
@@ -144,4 +148,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Se una voce è stata gestita, restituisci true
         return true;
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ThemeHelper.applyTheme(this);
+    }
+
 }

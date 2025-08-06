@@ -11,7 +11,9 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/activity_home"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="?attr/colorSurface">
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -29,7 +31,8 @@
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_margin="16dp"
-            android:layout_gravity="top|center_horizontal" />
+            android:layout_gravity="top|center_horizontal"
+            android:textColor="?android:textColorPrimary" />
 
         <!-- Quest bar -->
         <LinearLayout
@@ -38,7 +41,7 @@
             android:layout_height="60dp"
             android:layout_marginTop="60dp"
             android:orientation="horizontal"
-            android:background="#EEE"
+            android:background="?attr/colorSurface"
             android:padding="8dp">
 
             <TextView
@@ -46,7 +49,7 @@
                 android:layout_height="wrap_content"
                 android:text="Quest attive..."
                 android:textStyle="bold"
-                android:textColor="#000" />
+                android:textColor="?android:textColorPrimary" />
         </LinearLayout>
 
         <!-- Mappa (immagine simulata) -->
