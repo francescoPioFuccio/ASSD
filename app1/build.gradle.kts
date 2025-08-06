@@ -40,6 +40,12 @@ android {
 
 dependencies {
 
+    // Google Maps
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    // Per le chiamate HTTP (se non l'hai già)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -49,6 +55,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel:2.7.0")
 
     // Dipendenze aggiunte per Retrofit e GSON Converter (sintassi Kotlin DSL corretta)
     implementation("com.squareup.retrofit2:retrofit:2.9.0") // <-- Corretto

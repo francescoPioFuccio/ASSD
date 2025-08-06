@@ -14,17 +14,28 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MuseoApp">
         <activity
-                android:name=".ui.settings.SettingsActivity"
-                android:exported="false"/>
+            android:name=".ui.navigation.NavigationActivity"
+            android:exported="false" />
+        <!-- Google Maps API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg" />
+
         <activity
-                android:name=".ui.promotion.PuntiBonusActivity"
-                android:exported="false"/>
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false" /> <!-- Settings activity -->
         <activity
-                android:name=".ui.profile.ProfileActivity"
-                android:exported="false"/>
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false" />
         <activity
-                android:name=".ui.home.HomeActivity"
-                android:exported="false"/>
+            android:name=".ui.promotion.PuntiBonusActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.profile.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.home.HomeActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.login.StartActivity"
             android:exported="true">
@@ -43,9 +54,6 @@
             android:label="@string/title_activity_login" />
         <activity
             android:name=".MainActivity"
-            android:exported="false" /> <!-- Settings activity -->
-        <activity
-            android:name=".ui.settings.SettingsActivity"
             android:exported="false" />
     </application>
 

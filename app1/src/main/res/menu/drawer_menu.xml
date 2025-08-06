@@ -19,8 +19,8 @@
 
         <item
             android:id="@+id/nav_bonus"
-            android:title="Punti Bonus"
-            android:icon="@drawable/ic_bonus_points" />
+            android:title="Promozioni"
+            android:icon="@drawable/promozioni" />
 
         <item
             android:id="@+id/nav_chatbot"
