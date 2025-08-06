@@ -1,4 +1,4 @@
-package Repository;
+package Entity;
 
 public class SimulazionePromozione {
     private String titolo;

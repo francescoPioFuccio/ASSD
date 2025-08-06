@@ -3,8 +3,10 @@ package Service;
 // aggiungere un richiest GET per la storia della roba vista (tramite le quest---- Museo-Opera)
 // Buonus punto
 //
+import Entity.SimulazionePromozione;
 import Entity.User;
 import Repository.*;
+import Util.*;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -194,25 +196,18 @@ public class UserController {
     @GET
     @Path("/promozioni")
     public Response getPromozioni() {
-        // Creazione di un JSONArray con più promozioni
-        JSONArray promotionsArray = new JSONArray();
-
-        // Aggiunta di alcune promozioni di esempio
-        SimulazionePromozione promozione1 = new SimulazionePromozione("Voucher Museo", 100, 0.2);
-        SimulazionePromozione promozione2 = new SimulazionePromozione("Sconto Mostra", 0, 0.05);
-
-        // Aggiunta delle promozioni al JSONArray
-        promotionsArray.put(new JSONObject(promozione1));
-        promotionsArray.put(new JSONObject(promozione2));
-
-        // Restituisce un array JSON di promozioni
+        String simulatedResponse = SimulazioneService.getPromozioni();
         return Response.status(Response.Status.OK)
-                .entity(promotionsArray.toString())
+                .entity(simulatedResponse)
                 .build();
     }
+
     @POST
-    @Path("/promozione")
-    public String applicaPromozione(SimulazionePromozione promozione, int puntiUtente) {
-        return promozione.applicaPromozione(puntiUtente);
+    @Path("/applica-promozione")
+    public Response applicaPromozione(SimulazionePromozione promozione, @QueryParam("puntiUtente") int puntiUtente) {
+        String result = SimulazioneService.applicaPromozione(promozione, puntiUtente);
+        return Response.status(Response.Status.OK)
+                .entity("{\"message\": \"" + result + "\"}")
+                .build();
     }
 }
