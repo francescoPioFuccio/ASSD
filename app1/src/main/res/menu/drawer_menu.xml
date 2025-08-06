@@ -8,19 +8,9 @@
             android:icon="@drawable/account" />
 
         <item
-            android:id="@+id/nav_preferences"
-            android:title="Preferenze Musei"
-            android:icon="@drawable/ic_preferences" />
-
-        <item
             android:id="@+id/nav_settings"
             android:title="Impostazioni"
             android:icon="@drawable/ic_settings" />
-
-        <item
-            android:id="@+id/nav_help"
-            android:title="Guida"
-            android:icon="@drawable/ic_help" />
 
         <item
             android:id="@+id/nav_history"

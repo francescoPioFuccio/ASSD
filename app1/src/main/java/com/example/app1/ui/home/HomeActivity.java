@@ -112,16 +112,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (id == R.id.nav_profile) {
             startActivity(new Intent(this, ProfileActivity.class));
 
-        } else if (id == R.id.nav_preferences) {
-            Intent intent = new Intent(this, UserPreferencesActivity.class);
-            startActivity(intent);
         } else if (id == R.id.nav_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
 
-        } else if (id == R.id.nav_help) {
-            // startActivity(new Intent(this, HelpActivity.class));
-            Toast.makeText(this, "Help Activity not implemented yet", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_history) {
+        }  else if (id == R.id.nav_history) {
             // startActivity(new Intent(this, HistoryActivity.class));
             Toast.makeText(this, "History Activity not implemented yet", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_bonus) {

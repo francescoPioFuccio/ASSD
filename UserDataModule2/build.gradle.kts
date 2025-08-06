@@ -24,7 +24,7 @@ dependencies {
 
     implementation("org.json:json:20240303")
 
-    implementation("androidx.preference:preference:1.2.0")
+
     // Jakarta EE API (equivalente di "provided" in Gradle)
     // Significa che questa dipendenza serve per compilare, ma non verrà inclusa nel file finale
     // perché si presume che il server (WildFly) la fornirà.

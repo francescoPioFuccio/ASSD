@@ -1,5 +1,6 @@
 package Service;
 
+import Entity.SimulazionePromozione;
 import Entity.User;
 import Repository.*;
 import Util.*;
