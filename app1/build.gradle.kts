@@ -52,7 +52,8 @@ dependencies {
 
     // Dipendenze aggiunte per Retrofit e GSON Converter (sintassi Kotlin DSL corretta)
     implementation("com.squareup.retrofit2:retrofit:2.9.0") // <-- Corretto
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // <-- Corretto
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.androidx.preference) // <-- Corretto
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
