@@ -20,13 +20,17 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg" />
+        <activity
+            android:name=".ui.chat.ChatActivity"
+            android:label="Chat AI Arte"
+            android:parentActivityName=".ui.home.HomeActivity"
+            android:theme="@style/Theme.MuseoApp"
+            android:exported="false" />
 
         <activity
             android:name=".ui.settings.SettingsActivity"
-            android:exported="false" /> <!-- Settings activity -->
-        <activity
-            android:name=".ui.settings.SettingsActivity"
             android:exported="false" />
+
         <activity
             android:name=".ui.promotion.PuntiBonusActivity"
             android:exported="false" />

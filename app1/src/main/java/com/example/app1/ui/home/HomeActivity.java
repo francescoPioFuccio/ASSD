@@ -19,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.app1.R;
+import com.example.app1.ui.chat.ChatActivity;
 import com.example.app1.ui.login.LoginActivity;
 import com.example.app1.ui.navigation.NavigationActivity;
 import com.example.app1.ui.promotion.PuntiBonusActivity;
@@ -123,8 +124,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             startActivity(new Intent(this, PuntiBonusActivity.class));
             //Toast.makeText(this, "Bonus Points Activity not implemented yet", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_chatbot) {
-            // startActivity(new Intent(this, ChatBotActivity.class));
-            Toast.makeText(this, "ChatBot Activity not implemented yet", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, ChatActivity.class));
+            //Toast.makeText(this, "ChatBot Activity not implemented yet", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_info) {
             startActivity(new Intent(this, NavigationActivity.class));
             Toast.makeText(this, "Info Activity not implemented yet", Toast.LENGTH_SHORT).show();

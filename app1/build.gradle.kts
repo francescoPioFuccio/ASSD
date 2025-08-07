@@ -45,7 +45,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     // Per le chiamate HTTP (se non l'hai già)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

@@ -25,3 +25,9 @@ include(":UserDataModule")
 include(":app1")
 include("UserDataModule2")
 include("ChatBotService")
+include("app1:ChatBot")
+findProject(":app1:ChatBot")?.name = "ChatBot"
+include("app1:ChatBot")
+findProject(":app1:ChatBot")?.name = "ChatBot"
+include("ChatBot")
+include("GestioneOpere")
