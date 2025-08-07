@@ -228,9 +228,9 @@ public class UserController {
 
             // Inserisci qui la logica per recuperare i dati reali dal database o altro
             responseJson.put("nome", "Museo Nazionale");
-            responseJson.put("indirizzo", "Via Roma 123, Milano");
-            responseJson.put("latitudine", 45.4654);
-            responseJson.put("longitudine", 9.1859);
+            responseJson.put("indirizzo", "Via San Vittore 21, Milano");
+            responseJson.put("latitudine", 45.4628869);
+            responseJson.put("longitudine", 9.1706523);
 
             System.out.println("✅ Risposta inviata: " + responseJson.toString());
 

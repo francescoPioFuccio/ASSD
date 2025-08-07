@@ -64,6 +64,8 @@ dependencies {
 
     // Dipendenza per androidx.preference
     implementation("androidx.preference:preference:1.2.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

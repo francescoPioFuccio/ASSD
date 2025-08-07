@@ -51,7 +51,7 @@ public class RegisterViewModel extends ViewModel {
             }
 
             OkHttpClient client = new OkHttpClient();
-            String url = "http://10.0.2.2:8085/usermodule3/api/users/register";
+            String url = "http://10.0.2.2:8080/usermodule3/api/users/register";
 
             JSONObject json = new JSONObject();
             try {
