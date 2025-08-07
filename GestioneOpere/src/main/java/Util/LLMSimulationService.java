@@ -183,6 +183,13 @@ public class LLMSimulationService {
     private static String generaRispostaContestuale(String domanda) {
         String domandaLower = domanda.toLowerCase();
 
+
+        if (domandaLower.contains("gioconda")) {
+            return "La Gioconda, anche conosciuta come Monna Lisa, è uno dei dipinti più famosi al mondo, realizzato da Leonardo da Vinci. " +
+                    "È nota per il suo enigmatico sorriso e per la sua straordinaria tecnica pittorica. Il dipinto si trova attualmente al " +
+                    "Louvre di Parigi, dove attira milioni di visitatori ogni anno.";
+        }
+
         if (domandaLower.contains("chi") || domandaLower.contains("autore")) {
             String[] artisti = {"Leonardo da Vinci", "Michelangelo", "Van Gogh", "Picasso"};
             return "L'autore di quest'opera è " + artisti[random.nextInt(artisti.length)] +
@@ -277,6 +284,12 @@ public class LLMSimulationService {
         String messaggioLower = messaggio.toLowerCase();
 
         // Saluti
+        if (messaggioLower.contains("gioconda")) {
+            return "La Gioconda, anche conosciuta come Monna Lisa, è uno dei dipinti più famosi al mondo, realizzato da Leonardo da Vinci. " +
+                    "È nota per il suo enigmatico sorriso e per la sua straordinaria tecnica pittorica. Il dipinto si trova attualmente al " +
+                    "Louvre di Parigi, dove attira milioni di visitatori ogni anno.";
+        }
+
         if (messaggioLower.contains("ciao") || messaggioLower.contains("salve")) {
             return "Ciao! Sono il tuo assistente per l'arte e i musei. Come posso aiutarti oggi?";
         }
@@ -303,6 +316,7 @@ public class LLMSimulationService {
             return "Continuando il nostro discorso, posso aggiungere che ogni opera ha la sua storia unica. " +
                     "C'è qualcosa di specifico che vorresti approfondire?";
         }
+
 
         // Risposta generica ma friendly
         return "È un argomento molto interessante! L'arte ha sempre qualcosa da raccontarci. " +

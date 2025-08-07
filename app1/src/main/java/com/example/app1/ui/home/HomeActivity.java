@@ -64,10 +64,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
+        // Inizializza la toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
+        // Inizializza il drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         welcomeTextView = findViewById(R.id.welcomeText);
@@ -82,6 +84,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             welcomeTextView.setText("Benvenuto, " + username + "!");
         }
 
+        // Aggiorna il nome utente nell'header del NavigationView
+        View headerView = navigationView.getHeaderView(0); // Ottieni l'header del NavigationView
+        TextView userNameTextView = headerView.findViewById(R.id.nav_username); // Trova il TextView nell'header
+        if (username != null && !username.isEmpty()) {
+            userNameTextView.setText(username); // Imposta il nome utente
+        }
+
+        // Salva l'userId in SharedPreferences
         if (userId != null && !userId.isEmpty()) {
             getSharedPreferences("app_prefs", MODE_PRIVATE)
                     .edit()
