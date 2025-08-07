@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout per i messaggi del bot (allineati a sinistra) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:gravity="start"
+              android:orientation="horizontal"
+              android:padding="4dp">
+
+    <!-- Avatar del bot -->
+    <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="top"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bot_avatar_background"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_dialog_info"
+            android:tint="@android:color/white" />
+
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="64dp"
+            android:background="@drawable/bot_message_background"
+            android:elevation="1dp"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+        <TextView
+                android:id="@+id/botMessageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Risposta del bot"
+                android:textColor="#333333"
+                android:textSize="16sp" />
+
+        <TextView
+                android:id="@+id/botTimeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginTop="4dp"
+                android:text="12:30"
+                android:textColor="#888888"
+                android:textSize="12sp" />
+
+    </LinearLayout>
+
+</LinearLayout>
