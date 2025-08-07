@@ -61,6 +61,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             welcomeTextView.setText("Benvenuto, " + username + "!");
         }
 
+        // Aggiorna il nome utente nell'header del NavigationView
+        View headerView = navigationView.getHeaderView(0); // Ottieni l'header del NavigationView
+        TextView userNameTextView = headerView.findViewById(R.id.nav_username); // Trova il TextView nell'header
+        if (username != null && !username.isEmpty()) {
+            userNameTextView.setText(username); // Imposta il nome utente
+        }
+
         // Salva l'userId in SharedPreferences
         if (userId != null && !userId.isEmpty()) {
             getSharedPreferences("app_prefs", MODE_PRIVATE)
@@ -144,10 +151,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Se una voce è stata gestita, restituisci true
         return true;
     }
+
     @Override
     protected void onResume() {
         super.onResume();
         ThemeHelper.applyTheme(this);
     }
-
 }

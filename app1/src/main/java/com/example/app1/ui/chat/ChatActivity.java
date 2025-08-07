@@ -196,7 +196,10 @@ public class ChatActivity extends AppCompatActivity {
         builder.setPositiveButton("Sì", (dialog, which) -> {
             chatViewModel.clearChat();
             Toast.makeText(this, "Chat pulita!", Toast.LENGTH_SHORT).show();
-            showWelcomeMessage();
+            // Rimuovi questa chiamata o usa un delay
+            binding.chatRecyclerView.postDelayed(() -> {
+                chatViewModel.showWelcomeMessage();
+            }, 200);
         });
 
         builder.setNegativeButton("No", (dialog, which) -> dialog.cancel());
@@ -228,20 +231,9 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void showWelcomeMessage() {
-        // Aggiungi un messaggio di benvenuto dopo un breve delay
+        // Usa il ViewModel per mostrare il messaggio di benvenuto
         binding.chatRecyclerView.postDelayed(() -> {
-            String welcomeMessage = "👋 Ciao! Sono il tuo assistente per l'arte e i musei.\n\n" +
-                    "Puoi farmi domande su:\n" +
-                    "🎨 Opere d'arte e artisti\n" +
-                    "🏛️ Musei e mostre\n" +
-                    "📚 Storia dell'arte\n" +
-                    "🖼️ Analisi di immagini\n\n" +
-                    "Come posso aiutarti oggi?";
-
-            // Simula un messaggio del bot
-            ChatMessage welcomeMsg = new ChatMessage(welcomeMessage, false, System.currentTimeMillis());
-            chatAdapter.addMessage(welcomeMsg);
-            binding.chatRecyclerView.scrollToPosition(chatAdapter.getItemCount() - 1);
+            chatViewModel.showWelcomeMessage();
         }, 500);
     }
 

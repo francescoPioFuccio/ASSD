@@ -24,7 +24,7 @@ public class ChatViewModel extends AndroidViewModel {
 
     private String conversationId = null;
     private final OkHttpClient client = new OkHttpClient();
-    private static final String BASE_URL = "http://10.0.2.2:8085/usermodule3/api/opera";
+    private static final String BASE_URL = "http://10.0.2.2:8085/gestioneopere/api/opera";
 
     public ChatViewModel(Application application) {
         super(application);
@@ -114,6 +114,7 @@ public class ChatViewModel extends AndroidViewModel {
 
 
     // Metodo per chat conversazionale (mantiene il contesto)
+    // Metodo per chat conversazionale (mantiene il contesto) - CORRETTO
     public void sendChatMessage(String message, String userId) {
         if (message == null || message.trim().isEmpty()) {
             errorMessage.setValue("Il messaggio non può essere vuoto");
@@ -160,6 +161,19 @@ public class ChatViewModel extends AndroidViewModel {
                         Log.d("ChatViewModel", "Chat response body: " + responseBody);
 
                         JSONObject jsonResponse = new JSONObject(responseBody);
+
+                        // CORREZIONE: Il server restituisce "message" invece di "risposta"
+                        String botResponse = jsonResponse.getString("message");
+
+                        // Salva il conversationId se presente nella risposta
+                        if (jsonResponse.has("conversationId")) {
+                            conversationId = jsonResponse.getString("conversationId");
+                            Log.d("ChatViewModel", "Conversation ID updated: " + conversationId);
+                        }
+
+                        // AGGIUNTA: Aggiungi il messaggio del bot alla chat
+                        addBotMessage(botResponse);
+
                     } else {
                         String errorBody = response.body() != null ? response.body().string() : "";
                         Log.e("ChatViewModel", "Chat error response: " + response.code() + " - " + errorBody);
@@ -178,6 +192,19 @@ public class ChatViewModel extends AndroidViewModel {
             errorMessage.setValue("Errore nella preparazione della richiesta");
             isLoading.setValue(false);
         }
+    }
+
+    // Metodo per aggiungere il messaggio di benvenuto
+    public void showWelcomeMessage() {
+        String welcomeMessage = "👋 Ciao! Sono il tuo assistente per l'arte e i musei.\n\n" +
+                "Puoi farmi domande su:\n" +
+                "🎨 Opere d'arte e artisti\n" +
+                "🏛️ Musei e mostre\n" +
+                "📚 Storia dell'arte\n" +
+                "🖼️ Analisi di immagini\n\n" +
+                "Come posso aiutarti oggi?";
+
+        addBotMessage(welcomeMessage);
     }
 
     // Metodo per ottenere informazioni su un'opera
