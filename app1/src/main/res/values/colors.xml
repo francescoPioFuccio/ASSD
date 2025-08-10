@@ -13,4 +13,11 @@
     <color name="black">#000000</color>
     <color name="main">#6200EE</color> <!-- oppure il colore che vuoi -->
 
+    <!-- Additional colors for app compatibility -->
+    <color name="primary">#6200EE</color>
+    <color name="primary_light">#BB86FC</color>
+    <color name="success">#4CAF50</color>
+    <color name="success_light">#81C784</color>
+    <color name="background">#FFFFFF</color>
+
 </resources>

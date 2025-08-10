@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permessi -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
             android:allowBackup="true"
@@ -15,51 +15,51 @@
             android:theme="@style/Theme.MuseoApp">
         <activity
                 android:name=".ui.musei.MuseiActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.navigation.NavigationActivity"
-                android:exported="false" /> <!-- Google Maps API Key -->
+                android:exported="false"/> <!-- Google Maps API Key -->
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
-                android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg" />
+                android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg"/>
 
         <activity
                 android:name=".ui.chat.ChatActivity"
                 android:exported="false"
                 android:label="Chat AI Arte"
                 android:parentActivityName=".ui.home.HomeActivity"
-                android:theme="@style/Theme.MuseoApp" />
+                android:theme="@style/Theme.MuseoApp"/>
         <activity
                 android:name=".ui.settings.SettingsActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.promotion.PuntiBonusActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.profile.ProfileActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.home.HomeActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.login.StartActivity"
                 android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
                 android:name=".ui.login.RegisterActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.login.LoginActivity"
                 android:exported="false"
-                android:label="@string/title_activity_login" />
+                android:label="@string/title_activity_login"/>
         <activity
                 android:name=".MainActivity"
-                android:exported="false" />
+                android:exported="false"/>
     </application>
 
 </manifest>

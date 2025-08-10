@@ -8,10 +8,10 @@ version = "unspecified"
 
 dependencies {
     implementation(project(":UserDataModule2"))
-
-
+    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("org.json:json:20240303")
-
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
     implementation("jakarta.inject:jakarta.inject-api:2.0.1")
     implementation("org.glassfish.jersey.core:jersey-server:3.1.3")

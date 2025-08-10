@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   xmlns:tools="http://schemas.android.com/tools"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="wrap_content"
+                                   android:layout_marginHorizontal="8dp"
+                                   android:layout_marginVertical="6dp"
+                                   app:cardCornerRadius="12dp"
+                                   app:cardElevation="6dp"
+                                   android:foreground="?android:attr/selectableItemBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+        <!-- Icona del tipo di museo -->
+        <ImageView
+                android:id="@+id/museoTipoIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/oval"
+                android:backgroundTint="#6200EE"
+                android:padding="12dp"
+                app:tint="@android:color/white"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@android:drawable/star_on" />
+
+        <!-- Container per le informazioni principali -->
+        <LinearLayout
+                android:id="@+id/infoContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toTopOf="@+id/statusContainer"
+                app:layout_constraintEnd_toStartOf="@+id/metricsContainer"
+                app:layout_constraintStart_toEndOf="@+id/museoTipoIcon"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Nome del museo -->
+            <TextView
+                    android:id="@+id/museoNome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nome Museo"
+                    android:textColor="#212121"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+
+            <!-- Tipologia -->
+            <TextView
+                    android:id="@+id/museoTipologia"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="#E8F5E8"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="2dp"
+                    android:text="Arte Contemporanea"
+                    android:textColor="#2E7D32"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Container per le metriche (distanza e rating) -->
+        <LinearLayout
+                android:id="@+id/metricsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|end"
+                android:minWidth="70dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Distanza -->
+            <TextView
+                    android:id="@+id/museoDistanza"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="2.3 km"
+                    android:textColor="#1976D2"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+            <!-- Rating -->
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@android:drawable/star_on"
+                        android:tint="#FF9800" />
+
+                <TextView
+                        android:id="@+id/museoRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:text="4.5"
+                        android:textColor="#FF9800"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Descrizione -->
+        <TextView
+                android:id="@+id/museoDescrizione"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="Descrizione del museo con informazioni interessanti sulla collezione e storia"
+                android:textColor="#616161"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/museoTipoIcon"
+                app:layout_constraintTop_toBottomOf="@+id/infoContainer" />
+
+        <!-- Container per stato e prezzo -->
+        <LinearLayout
+                android:id="@+id/statusContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toStartOf="@+id/actionsContainer"
+                app:layout_constraintStart_toEndOf="@+id/museoTipoIcon"
+                app:layout_constraintTop_toBottomOf="@+id/museoDescrizione">
+
+            <!-- Stato apertura -->
+            <TextView
+                    android:id="@+id/museoStato"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#E8F5E8"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:text="Aperto"
+                    android:textColor="#2E7D32"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+            <!-- Prezzo -->
+            <TextView
+                    android:id="@+id/museoPrezzo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:background="#FFF3E0"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:text="€12"
+                    android:textColor="#E65100"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Container per i bottoni di azione -->
+        <LinearLayout
+                android:id="@+id/actionsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/museoDescrizione">
+
+            <!-- Bottone preferiti -->
+            <ImageButton
+                    android:id="@+id/favoritiButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Aggiungi ai preferiti"
+                    android:padding="8dp"
+                    android:src="@android:drawable/btn_star_big_off"
+                    android:tint="#FF5722" />
+
+            <!-- Bottone dettagli -->
+            <Button
+                    android:id="@+id/dettagliButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="#6200EE"
+                    android:paddingHorizontal="16dp"
+                    android:text="Dettagli"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
