@@ -21,7 +21,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.example.app1.R;
 import com.example.app1.ui.chat.ChatActivity;
 import com.example.app1.ui.login.LoginActivity;
-import com.example.app1.ui.musei.MuseiActivity;
+import com.example.app1.ui.musei.MuseiFragment;
 import com.example.app1.ui.promotion.PuntiBonusActivity;
 import com.example.app1.ui.settings.SettingsActivity;
 import com.example.app1.util.ThemeHelper;
@@ -33,7 +33,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle toggle;
     private NavigationView navigationView;
-    private TextView welcomeTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,15 +49,18 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Inizializza il drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
-        welcomeTextView = findViewById(R.id.welcomeText);
 
         // Ottieni il nome utente e l'ID passato da LoginActivity
         Intent intent = getIntent();
         String username = intent.getStringExtra("username");
         String userId = intent.getStringExtra("userid");
 
-        if (username != null && !username.isEmpty()) {
-            welcomeTextView.setText("Benvenuto, " + username + "!");
+        // Carica il fragment Musei al centro come schermata iniziale
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.content_container, new MuseiFragment(), "MuseiFragment")
+                    .commit();
         }
 
         // Aggiorna il nome utente nell'header del NavigationView
@@ -133,9 +135,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_chatbot) {
             startActivity(new Intent(this, ChatActivity.class));
             //Toast.makeText(this, "ChatBot Activity not implemented yet", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_info) {
-            startActivity(new Intent(this, MuseiActivity.class));
-            //Toast.makeText(this, "Info Activity not implemented yet", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_musei) {
+            // Mostra la lista musei al centro della Home
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.content_container, new MuseiFragment(), "MuseiFragment")
+                    .commit();
         } else if (id == R.id.nav_logout) {
             // logout logica
             getSharedPreferences("app_prefs", MODE_PRIVATE).edit().clear().apply();

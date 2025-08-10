@@ -14,9 +14,6 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.MuseoApp">
         <activity
-                android:name=".ui.musei.MuseiActivity"
-                android:exported="false"/>
-        <activity
                 android:name=".ui.navigation.NavigationActivity"
                 android:exported="false"/> <!-- Google Maps API Key -->
         <meta-data
