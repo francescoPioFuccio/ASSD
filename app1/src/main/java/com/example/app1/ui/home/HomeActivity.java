@@ -22,7 +22,6 @@ import com.example.app1.R;
 import com.example.app1.ui.chat.ChatActivity;
 import com.example.app1.ui.login.LoginActivity;
 import com.example.app1.ui.musei.MuseiActivity;
-import com.example.app1.ui.navigation.NavigationActivity;
 import com.example.app1.ui.promotion.PuntiBonusActivity;
 import com.example.app1.ui.settings.SettingsActivity;
 import com.example.app1.util.ThemeHelper;

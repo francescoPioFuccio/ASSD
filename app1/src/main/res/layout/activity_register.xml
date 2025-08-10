@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/gradient_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -11,117 +13,264 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <EditText
-            android:id="@+id/nome"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nome"
-            android:inputType="textPersonName" />
+        <!-- Logo -->
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:src="@drawable/ic_museum_logo" />
 
-        <EditText
-            android:id="@+id/cognome"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Cognome"
-            android:inputType="textPersonName" />
-
-        <EditText
-            android:id="@+id/email"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Email"
-            android:inputType="textEmailAddress" />
-
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword" />
-
-        <EditText
-            android:id="@+id/confirmPassword"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Conferma Password"
-            android:inputType="textPassword" />
-
+        <!-- Title -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Seleziona i tuoi tipi di museo preferiti:"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"/>
-
-        <LinearLayout
-            android:id="@+id/preferences_checkbox_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_marginBottom="32dp"
+            android:text="Crea il tuo account"
+            android:textAlignment="center"
+            android:textColor="@color/purple_700"
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
-            <CheckBox
-                android:id="@+id/checkbox_arte"
+        <!-- Registration Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Name Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/nome_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Nome"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/purple_500"
+                    app:startIconDrawable="@drawable/ic_person"
+                    app:startIconTint="@color/purple_500">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/nome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Surname Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/cognome_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Cognome"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/purple_500"
+                    app:startIconDrawable="@drawable/ic_person"
+                    app:startIconTint="@color/purple_500">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/cognome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPersonName" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Email Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/email_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Email"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/purple_500"
+                    app:startIconDrawable="@drawable/ic_email"
+                    app:startIconTint="@color/purple_500">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textEmailAddress" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Password Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/password_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:hint="Password"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/purple_500"
+                    app:endIconMode="password_toggle"
+                    app:startIconDrawable="@drawable/ic_lock"
+                    app:startIconTint="@color/purple_500">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/password"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Confirm Password Field -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/confirmPassword_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Conferma Password"
+                    app:boxCornerRadiusBottomEnd="12dp"
+                    app:boxCornerRadiusBottomStart="12dp"
+                    app:boxCornerRadiusTopEnd="12dp"
+                    app:boxCornerRadiusTopStart="12dp"
+                    app:boxStrokeColor="@color/purple_500"
+                    app:endIconMode="password_toggle"
+                    app:startIconDrawable="@drawable/ic_lock"
+                    app:startIconTint="@color/purple_500">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/confirmPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textPassword" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Preferences Section -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="Seleziona i tuoi tipi di museo preferiti:"
+                    android:textColor="@color/purple_700"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/museum_checkboxes"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical">
+
+                    <CheckBox
+                        android:id="@+id/checkbox_art"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Arte"
+                        android:buttonTint="@color/purple_500"
+                        android:textColor="@color/gray_600" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_science"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Scienza"
+                        android:buttonTint="@color/purple_500"
+                        android:textColor="@color/gray_600" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_history"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Storia"
+                        android:buttonTint="@color/purple_500"
+                        android:textColor="@color/gray_600" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_tech"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tecnologia"
+                        android:buttonTint="@color/purple_500"
+                        android:textColor="@color/gray_600" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_archaeology"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Archeologia"
+                        android:buttonTint="@color/purple_500"
+                        android:textColor="@color/gray_600" />
+
+                    <CheckBox
+                        android:id="@+id/checkbox_nature"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Natura"
+                        android:buttonTint="@color/purple_500"
+                        android:textColor="@color/gray_600" />
+
+                </LinearLayout>
+
+                <!-- Register Button -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/register"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="16dp"
+                    android:text="Registrati"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:background="@drawable/button_background"
+                    android:backgroundTint="@color/purple_500" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Login Link -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Arte" />
+                android:text="Hai già un account? "
+                android:textColor="@color/gray_600" />
 
-            <CheckBox
-                android:id="@+id/checkbox_scienza"
+            <TextView
+                android:id="@+id/login_link"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Scienza" />
-
-            <CheckBox
-                android:id="@+id/checkbox_storia"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Storia" />
-
-            <CheckBox
-                android:id="@+id/checkbox_tecnologia"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tecnologia" />
-
-            <CheckBox
-                android:id="@+id/checkbox_archeologia"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Archeologia" />
-
-            <CheckBox
-                android:id="@+id/checkbox_naturalistica"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Storia Naturale" />
-
-            <CheckBox
-                android:id="@+id/checkbox_design"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Design" />
-
-            <CheckBox
-                android:id="@+id/checkbox_fotografia"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Fotografia" />
-
+                android:text="Accedi"
+                android:textColor="@color/purple_500"
+                android:textStyle="bold" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/register"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Registrati"
-            android:enabled="false"
-            android:layout_marginTop="16dp" />
-
+        <!-- Loading Progress -->
         <ProgressBar
             android:id="@+id/loading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 </ScrollView>

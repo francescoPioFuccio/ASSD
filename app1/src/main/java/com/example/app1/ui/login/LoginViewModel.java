@@ -44,7 +44,7 @@ public class LoginViewModel extends ViewModel {
     public void login(String username, String password) {
         executor.execute(() -> {
             OkHttpClient client = new OkHttpClient();
-            String url = "http://10.0.2.2:8080/usermodule3/api/users/login";
+            String url = "http://10.0.2.2:8085/usermodule3/api/users/login";
 
             JSONObject json = new JSONObject();
             try {
@@ -66,15 +66,21 @@ public class LoginViewModel extends ViewModel {
                     String responseBody = response.body().string();
                     JSONObject jsonResponse = new JSONObject(responseBody);
 
-                    JSONObject userObj = jsonResponse.getJSONObject("user");
-                    String userId = userObj.getString("id");
-                    String displayName = userObj.getString("nome");
+                    if (jsonResponse.has("user")) {
+                        JSONObject userObj = jsonResponse.getJSONObject("user");
+                        String userId = userObj.getString("id");
+                        String displayName = userObj.getString("nome");
 
-                    LoggedInUserView userView = new LoggedInUserView(displayName,userId);
-                    loginResult.postValue(LoginResult.success(userView));
+                        LoggedInUserView userView = new LoggedInUserView(displayName, userId);
+                        loginResult.postValue(LoginResult.success(userView));
+                    } else {
+                        loginResult.postValue(LoginResult.error(R.string.login_failed));
+                    }
                 } else {
                     loginResult.postValue(LoginResult.error(R.string.login_failed));
                 }
+            } catch (JSONException e) {
+                loginResult.postValue(LoginResult.error(R.string.login_failed));
             } catch (Exception e) {
                 loginResult.postValue(LoginResult.error(R.string.login_failed));
             }
