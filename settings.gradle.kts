@@ -31,3 +31,8 @@ include("app1:ChatBot")
 findProject(":app1:ChatBot")?.name = "ChatBot"
 include("ChatBot")
 include("GestioneOpere")
+include("GestioneOpere:GestioneMusei")
+findProject(":GestioneOpere:GestioneMusei")?.name = "GestioneMusei"
+include("GestioneMusei")
+include("GestioneMusei")
+include("GestioneMusei")
