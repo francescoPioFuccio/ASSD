@@ -132,6 +132,16 @@ public class LoginActivity extends AppCompatActivity {
         String displayName = model.getDisplayName();
         String userId = model.getUserId();
 
+        // Sincronizza le preferenze se disponibili
+        if (model.getPreferenzeSync() != null) {
+            android.content.SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+            android.content.SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("preferenze_musei", model.getPreferenzeSync());
+            editor.apply();
+            
+            android.util.Log.d("LoginActivity", "Preferenze sincronizzate: " + model.getPreferenzeSync());
+        }
+
         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
         intent.putExtra("username", displayName);
         intent.putExtra("userid", userId);

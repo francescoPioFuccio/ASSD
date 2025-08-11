@@ -30,26 +30,42 @@ public class MuseoSimulationService {
             Thread.currentThread().interrupt();
         }
 
+        // Normalizza preferenze verso categorie supportate
+        List<String> preferenzeRichieste = normalizzaPreferenze(preferenze);
+
+        // Seleziona dal database i musei che matchano le preferenze (oppure tutti se nessuna preferenza)
+        List<JSONObject> museiSelezionati = new java.util.ArrayList<>();
+        for (Map.Entry<String, JSONObject> entry : DATABASE_MUSEI.entrySet()) {
+            JSONObject museoDb = entry.getValue();
+            String categoria = museoDb.optString("categoria", "").toLowerCase();
+            if (preferenzeRichieste.isEmpty() || preferenzeRichieste.contains(categoria)) {
+                JSONObject museoClonato = new JSONObject(museoDb.toString());
+                applicaPosizioneEDettagliDinamici(museoClonato, latitudine, longitudine, raggio);
+                museiSelezionati.add(museoClonato);
+            }
+        }
+
+        // Ordina per distanza crescente
+        museiSelezionati.sort((a, b) -> Double.compare(a.optDouble("distanza", 0.0), b.optDouble("distanza", 0.0)));
+
+        // Prepara risposta
         JSONObject risultato = new JSONObject();
         JSONArray musei = new JSONArray();
-
-        // Genera 3 musei basandosi sui parametri
-        for (int i = 0; i < 3; i++) {
-            JSONObject museo = generaMuseoVicino(latitudine, longitudine, preferenze, raggio, i + 1);
-            musei.put(museo);
+        for (JSONObject m : museiSelezionati) {
+            musei.put(m);
         }
 
         risultato.put("success", true);
         risultato.put("userId", userId);
         risultato.put("musei", musei);
-        risultato.put("totalFound", 3);
+        risultato.put("totalFound", musei.length());
         risultato.put("searchRadius", raggio);
         risultato.put("searchLocation", new JSONObject()
                 .put("latitudine", latitudine)
                 .put("longitudine", longitudine));
         risultato.put("timestamp", System.currentTimeMillis());
 
-        System.out.println("🏛️ Musei raccomandati generati con successo");
+        System.out.println("🏛️ Musei raccomandati generati con successo (" + musei.length() + ")");
         return risultato;
     }
 
@@ -72,6 +88,9 @@ public class MuseoSimulationService {
             dettaglio.put("tipologia", museoBase.getString("tipologia"));
             dettaglio.put("descrizione", museoBase.getString("descrizione"));
             dettaglio.put("coordinate", museoBase.getJSONObject("coordinate"));
+            // Compatibilità: latitudine/longitudine anche a livello top
+            dettaglio.put("latitudine", museoBase.getJSONObject("coordinate").optDouble("latitudine", 0.0));
+            dettaglio.put("longitudine", museoBase.getJSONObject("coordinate").optDouble("longitudine", 0.0));
 
             // Aggiungi dettagli extra
             aggiungiDettagliCompleti(dettaglio, museoId);
@@ -81,6 +100,10 @@ public class MuseoSimulationService {
             dettaglio.put("found", true);
             dettaglio.put("id", museoId);
             dettaglio = generaDettaglioMuseoCompleto(museoId);
+            if (dettaglio.has("coordinate")) {
+                dettaglio.put("latitudine", dettaglio.getJSONObject("coordinate").optDouble("latitudine", 0.0));
+                dettaglio.put("longitudine", dettaglio.getJSONObject("coordinate").optDouble("longitudine", 0.0));
+            }
         }
 
         dettaglio.put("timestamp", System.currentTimeMillis());
@@ -134,6 +157,55 @@ public class MuseoSimulationService {
     }
 
     // === METODI AUSILIARI ===
+
+    // Sposta il museo vicino all'utente e aggiunge campi dinamici utili alla lista
+    private static void applicaPosizioneEDettagliDinamici(JSONObject museo,
+                                                          Double latBase,
+                                                          Double lonBase,
+                                                          Integer raggio) {
+        // Per 5 minuti in macchina (circa 3-5 km a velocità urbana)
+        double raggioKm = 3.0 + random.nextDouble() * 2.0; // 3-5 km
+        // Conversione approssimativa: 1° ≈ 111km, quindi per 3-5km usiamo 0.003-0.005°
+        double deltaMax = raggioKm / 111000.0; // Circa 0.003-0.005 gradi
+        
+        JSONObject coordinate = new JSONObject();
+        double deltaLat = (random.nextDouble() - 0.5) * deltaMax;
+        double deltaLon = (random.nextDouble() - 0.5) * deltaMax;
+
+        double lat = Math.round((latBase + deltaLat) * 1000000.0) / 1000000.0;
+        double lon = Math.round((lonBase + deltaLon) * 1000000.0) / 1000000.0;
+
+        coordinate.put("latitudine", lat);
+        coordinate.put("longitudine", lon);
+        museo.put("coordinate", coordinate);
+        // Campi top-level per compatibilità con l'app Android
+        museo.put("latitudine", lat);
+        museo.put("longitudine", lon);
+
+        // Informazioni dinamiche per la lista - distanza reale calcolata
+        museo.put("distanza", Math.round(raggioKm * 10.0) / 10.0);
+        museo.put("rating", Math.round((3.5 + Math.random() * 1.5) * 10.0) / 10.0);
+        museo.put("aperto", random.nextBoolean());
+        museo.put("ingressoGratuito", random.nextBoolean());
+        if (!museo.getBoolean("ingressoGratuito")) {
+            museo.put("prezzoIngresso", 5 + random.nextInt(20));
+        }
+    }
+
+    // Normalizza stringa preferenze in un insieme di categorie supportate
+    private static List<String> normalizzaPreferenze(String preferenze) {
+        List<String> risultato = new java.util.ArrayList<>();
+        if (preferenze == null || preferenze.trim().isEmpty()) {
+            return risultato; // Vuoto => tutte le categorie
+        }
+        String prefLower = preferenze.toLowerCase();
+        if (prefLower.contains("arte")) risultato.add("arte");
+        if (prefLower.contains("scienza")) risultato.add("scienza");
+        if (prefLower.contains("storia")) risultato.add("storia");
+        if (prefLower.contains("tecnologia") || prefLower.contains("teconologia")) risultato.add("tecnologia");
+        if (prefLower.contains("natura")) risultato.add("natura");
+        return risultato;
+    }
 
     private static JSONObject generaMuseoVicino(Double latBase, Double lonBase, String preferenze,
                                                 Integer raggio, int index) {
@@ -312,32 +384,60 @@ public class MuseoSimulationService {
     private static Map<String, JSONObject> initializeDatabaseMusei() {
         Map<String, JSONObject> database = new HashMap<>();
 
-        // Museo 1 (Louvre)
-        JSONObject museo1 = new JSONObject();
-        museo1.put("id", "MUS_001");
-        museo1.put("nome", "Museo del Louvre");
-        museo1.put("tipologia", "Arte Classica / Arte Moderna");
-        museo1.put("descrizione", "Uno dei musei più famosi e grandi del mondo, con una vasta collezione di arte classica e moderna.");
-        museo1.put("coordinate", new JSONObject().put("latitudine", 48.8606).put("longitudine", 2.3376));
-        database.put("MUS_001", museo1);
+        // 1) Arte
+        JSONObject museoArte = new JSONObject();
+        museoArte.put("id", "MUS_ARTE");
+        museoArte.put("nome", "Galleria d'Arte Moderna");
+        museoArte.put("tipologia", "Arte");
+        museoArte.put("categoria", "arte");
+        museoArte.put("descrizione", "Collezione di opere d'arte moderna e contemporanea.");
+        museoArte.put("indirizzo", "Via delle Arti 1");
+        museoArte.put("coordinate", new JSONObject().put("latitudine", 41.9123).put("longitudine", 12.4801));
+        database.put("MUS_ARTE", museoArte);
 
-        // Museo 2
-        JSONObject museo2 = new JSONObject();
-        museo2.put("id", "MUS_002");
-        museo2.put("nome", "Palazzo Altemps");
-        museo2.put("tipologia", "Arte Classica");
-        museo2.put("descrizione", "Splendida collezione di sculture antiche in palazzo rinascimentale.");
-        museo2.put("coordinate", new JSONObject().put("latitudine", 41.9008).put("longitudine", 12.4734));
-        database.put("MUS_002", museo2);
+        // 2) Scienza
+        JSONObject museoScienza = new JSONObject();
+        museoScienza.put("id", "MUS_SCIENZA");
+        museoScienza.put("nome", "Museo delle Scienze");
+        museoScienza.put("tipologia", "Scienza");
+        museoScienza.put("categoria", "scienza");
+        museoScienza.put("descrizione", "Esposizioni interattive su fisica, chimica e biologia.");
+        museoScienza.put("indirizzo", "Piazza della Scienza 5");
+        museoScienza.put("coordinate", new JSONObject().put("latitudine", 41.9055).put("longitudine", 12.4905));
+        database.put("MUS_SCIENZA", museoScienza);
 
-        // Museo 3
-        JSONObject museo3 = new JSONObject();
-        museo3.put("id", "MUS_003");
-        museo3.put("nome", "MAXXI - Museo Nazionale");
-        museo3.put("tipologia", "Arte Contemporanea");
-        museo3.put("descrizione", "Primo museo nazionale dedicato alla creatività contemporanea.");
-        museo3.put("coordinate", new JSONObject().put("latitudine", 41.9331).put("longitudine", 12.4728));
-        database.put("MUS_003", museo3);
+        // 3) Storia
+        JSONObject museoStoria = new JSONObject();
+        museoStoria.put("id", "MUS_STORIA");
+        museoStoria.put("nome", "Museo di Storia e Archeologia");
+        museoStoria.put("tipologia", "Storia");
+        museoStoria.put("categoria", "storia");
+        museoStoria.put("descrizione", "Percorso sulla storia locale con reperti archeologici.");
+        museoStoria.put("indirizzo", "Corso Storico 10");
+        museoStoria.put("coordinate", new JSONObject().put("latitudine", 41.8977).put("longitudine", 12.4755));
+        database.put("MUS_STORIA", museoStoria);
+
+        // 4) Tecnologia
+        JSONObject museoTecnologia = new JSONObject();
+        museoTecnologia.put("id", "MUS_TECNOLOGIA");
+        museoTecnologia.put("nome", "Museo della Tecnologia");
+        museoTecnologia.put("tipologia", "Tecnologia");
+        museoTecnologia.put("categoria", "tecnologia");
+        museoTecnologia.put("descrizione", "Mostre su innovazione, robotica e informatica.");
+        museoTecnologia.put("indirizzo", "Viale Innovazione 3");
+        museoTecnologia.put("coordinate", new JSONObject().put("latitudine", 41.9202).put("longitudine", 12.5002));
+        database.put("MUS_TECNOLOGIA", museoTecnologia);
+
+        // 5) Natura
+        JSONObject museoNatura = new JSONObject();
+        museoNatura.put("id", "MUS_NATURA");
+        museoNatura.put("nome", "Museo di Scienze Naturali");
+        museoNatura.put("tipologia", "Natura");
+        museoNatura.put("categoria", "natura");
+        museoNatura.put("descrizione", "Biodiversità, geologia e ambienti naturali.");
+        museoNatura.put("indirizzo", "Largo Natura 7");
+        museoNatura.put("coordinate", new JSONObject().put("latitudine", 41.9301).put("longitudine", 12.4707));
+        database.put("MUS_NATURA", museoNatura);
 
         return database;
     }

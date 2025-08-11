@@ -161,7 +161,6 @@
                     android:textSize="12sp"
                     android:textStyle="bold" />
 
-            <!-- Prezzo -->
             <TextView
                     android:id="@+id/museoPrezzo"
                     android:layout_width="wrap_content"
