@@ -50,11 +50,11 @@ public class MuseiAdapter extends RecyclerView.Adapter<MuseiAdapter.MuseoViewHol
             String id = museo.optString("id", "");
             String nome = museo.optString("nome", "Museo");
             String tipologia = museo.optString("tipologia", "");
-            String descrizione = museo.optString("descrizione", "");
-            double distanza = museo.optDouble("distanza", 0.0);
-            double rating = museo.optDouble("rating", 0.0);
-            boolean aperto = museo.optBoolean("aperto", true);
-            boolean ingressoGratuito = museo.optBoolean("ingressoGratuito", false);
+            String descrizione = museo.optString("descrizione", museo.optString("description", ""));
+            double distanza = museo.optDouble("distanza", museo.optDouble("distance", 0.0));
+            double rating = museo.optDouble("rating", museo.optDouble("valutazione", 0.0));
+            boolean aperto = museo.optBoolean("aperto", museo.optBoolean("isOpen", true));
+            boolean ingressoGratuito = museo.optBoolean("ingressoGratuito", museo.optBoolean("freeEntry", false));
 
             // Imposta i dati nelle view
             holder.nomeTextView.setText(nome);
@@ -100,10 +100,24 @@ public class MuseiAdapter extends RecyclerView.Adapter<MuseiAdapter.MuseoViewHol
                 }
             });
 
-            // Click listener per il bottone dettagli
-            holder.dettagliButton.setOnClickListener(v -> {
+            // Estrai coordinate dal JSON (supporta più formati)
+            double lat = 0.0;
+            double lon = 0.0;
+            JSONObject coord = museo.optJSONObject("coordinate");
+            if (coord != null) {
+                lat = coord.optDouble("latitudine", coord.optDouble("latitude", coord.optDouble("lat", 0.0)));
+                lon = coord.optDouble("longitudine", coord.optDouble("longitude", coord.optDouble("lng", coord.optDouble("lon", 0.0))));
+            } else {
+                lat = museo.optDouble("latitudine", museo.optDouble("latitude", museo.optDouble("lat", 0.0)));
+                lon = museo.optDouble("longitudine", museo.optDouble("longitude", museo.optDouble("lng", museo.optDouble("lon", 0.0))));
+            }
+
+            // Click listener per il bottone vai al museo
+            final double fLat = lat;
+            final double fLon = lon;
+            holder.vaiAlMuseoButton.setOnClickListener(v -> {
                 if (actionListener != null) {
-                    actionListener.onMuseoClick(id);
+                    actionListener.onVaiAlMuseoClick(id, nome, fLat, fLon);
                 }
             });
 
@@ -167,7 +181,7 @@ public class MuseiAdapter extends RecyclerView.Adapter<MuseiAdapter.MuseoViewHol
         TextView statoTextView;
         TextView prezzoTextView;
         ImageButton favoritiButton;
-        Button dettagliButton;
+        Button vaiAlMuseoButton;
         ImageView tipoIcon;
 
 
@@ -181,7 +195,7 @@ public class MuseiAdapter extends RecyclerView.Adapter<MuseiAdapter.MuseoViewHol
             statoTextView = itemView.findViewById(R.id.museoStato);
             prezzoTextView = itemView.findViewById(R.id.museoPrezzo);
             favoritiButton = itemView.findViewById(R.id.favoritiButton);
-            dettagliButton = itemView.findViewById(R.id.dettagliButton);
+            vaiAlMuseoButton = itemView.findViewById(R.id.vaiAlMuseoButton);
             tipoIcon = itemView.findViewById(R.id.museoTipoIcon);
         }
     }
@@ -190,5 +204,6 @@ public class MuseiAdapter extends RecyclerView.Adapter<MuseiAdapter.MuseoViewHol
     public interface OnMuseoActionListener {
         void onMuseoClick(String museoId);
         void onFavoritiClick(String museoId, String museoNome);
+        void onVaiAlMuseoClick(String museoId, String museoNome, double lat, double lon);
     }
 }

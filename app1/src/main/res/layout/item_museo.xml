@@ -198,15 +198,15 @@
                     android:src="@android:drawable/btn_star_big_off"
                     android:tint="#FF5722" />
 
-            <!-- Bottone dettagli -->
+            <!-- Bottone navigazione -->
             <Button
-                    android:id="@+id/dettagliButton"
+                    android:id="@+id/vaiAlMuseoButton"
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
                     android:layout_marginStart="8dp"
                     android:backgroundTint="#6200EE"
                     android:paddingHorizontal="16dp"
-                    android:text="Dettagli"
+                    android:text="Vai al museo"
                     android:textColor="@android:color/white"
                     android:textSize="12sp" />
 

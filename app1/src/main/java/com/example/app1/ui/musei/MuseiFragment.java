@@ -82,9 +82,86 @@ public class MuseiFragment extends Fragment {
             public void onFavoritiClick(String museoId, String museoNome) {
                 addToFavorites(museoId, museoNome);
             }
+
+            @Override
+            public void onVaiAlMuseoClick(String museoId, String museoNome, double lat, double lon) {
+                // Se le coordinate non sono fornite nell'elenco, recupera i dettagli prima della navigazione
+                if (lat == 0.0 && lon == 0.0) {
+                    viewModel.fetchDettaglioMuseo(museoId, currentUserId, new MuseiViewModel.MuseoDetailCallback() {
+                        @Override
+                        public void onSuccess(org.json.JSONObject dettaglio) {
+                            if (!isAdded()) return;
+                            double[] coords = extractCoordinatesFromDetail(dettaglio);
+                            final double dLat = coords[0];
+                            final double dLon = coords[1];
+                            requireActivity().runOnUiThread(() -> {
+                                if (dLat != 0.0 || dLon != 0.0) {
+                                    startNavigationTo(dLat, dLon, museoNome);
+                                } else {
+                                    Toast.makeText(requireContext(), "Coordinate non disponibili per questo museo", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            if (!isAdded()) return;
+                            requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), "Errore nel recupero coordinate", Toast.LENGTH_SHORT).show());
+                        }
+                    });
+                } else {
+                    startNavigationTo(lat, lon, museoNome);
+                }
+            }
         });
         binding.museiRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.museiRecyclerView.setAdapter(museiAdapter);
+    }
+
+    private void startNavigationTo(double lat, double lon, String label) {
+        try {
+            String uri = "google.navigation:q=" + lat + "," + lon + "&mode=d";
+            android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+            if (intent.resolveActivity(requireContext().getPackageManager()) != null) {
+                startActivity(intent);
+                // registra geofence per rilevare l'arrivo
+                com.example.app1.ui.navigation.NavigationGeofenceHelper.registerArrivalGeofence(requireContext(), label, lat, lon);
+            } else {
+                // fallback a geo: URI generico
+                android.content.Intent mapIntent = new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("geo:" + lat + "," + lon + "?q=" + lat + "," + lon + "(" + label + ")"));
+                startActivity(mapIntent);
+            }
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Impossibile avviare la navigazione", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private double[] extractCoordinatesFromDetail(org.json.JSONObject dettaglio) {
+        try {
+            // tenta vari possibili nomi di campo e strutture
+            org.json.JSONObject src = dettaglio;
+            if (dettaglio.has("location")) {
+                src = dettaglio.getJSONObject("location");
+            }
+            double lat = firstPresentDouble(src, new String[]{"lat", "latitude", "latitudine"});
+            double lon = firstPresentDouble(src, new String[]{"lon", "lng", "longitude", "longitudine"});
+            return new double[]{lat, lon};
+        } catch (Exception e) {
+            return new double[]{0.0, 0.0};
+        }
+    }
+
+    private double firstPresentDouble(org.json.JSONObject obj, String[] keys) {
+        for (String k : keys) {
+            if (obj.has(k)) {
+                try {
+                    return obj.getDouble(k);
+                } catch (Exception ignored) {}
+            }
+        }
+        return 0.0;
     }
 
     private void setupObservers() {

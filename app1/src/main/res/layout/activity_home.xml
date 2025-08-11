@@ -20,6 +20,7 @@
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                app:navigationIconTint="@color/purple_200"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
         <FrameLayout

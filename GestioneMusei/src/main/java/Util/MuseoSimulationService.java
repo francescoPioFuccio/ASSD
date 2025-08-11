@@ -312,13 +312,13 @@ public class MuseoSimulationService {
     private static Map<String, JSONObject> initializeDatabaseMusei() {
         Map<String, JSONObject> database = new HashMap<>();
 
-        // Museo 1
+        // Museo 1 (Louvre)
         JSONObject museo1 = new JSONObject();
         museo1.put("id", "MUS_001");
-        museo1.put("nome", "Museo Nazionale Romano");
-        museo1.put("tipologia", "Archeologia");
-        museo1.put("descrizione", "La più importante collezione di arte antica romana al mondo.");
-        museo1.put("coordinate", new JSONObject().put("latitudine", 41.9028).put("longitudine", 12.4964));
+        museo1.put("nome", "Museo del Louvre");
+        museo1.put("tipologia", "Arte Classica / Arte Moderna");
+        museo1.put("descrizione", "Uno dei musei più famosi e grandi del mondo, con una vasta collezione di arte classica e moderna.");
+        museo1.put("coordinate", new JSONObject().put("latitudine", 48.8606).put("longitudine", 2.3376));
         database.put("MUS_001", museo1);
 
         // Museo 2
@@ -341,4 +341,5 @@ public class MuseoSimulationService {
 
         return database;
     }
+
 }
