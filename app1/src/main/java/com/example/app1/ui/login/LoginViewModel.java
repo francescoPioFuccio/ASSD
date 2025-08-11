@@ -72,6 +72,7 @@ public class LoginViewModel extends ViewModel {
                         String displayName = userObj.getString("nome");
 
                         // Salva le preferenze per sincronizzazione successiva
+                        LoggedInUserView userView;
                         if (userObj.has("museoPreferito")) {
                             try {
                                 org.json.JSONArray preferenze = userObj.getJSONArray("museoPreferito");
@@ -82,22 +83,16 @@ public class LoginViewModel extends ViewModel {
                                 }
                                 
                                 String preferenzeSync = preferencesString.toString();
-                                
-                                LoggedInUserView userView = new LoggedInUserView(displayName, userId, preferenzeSync);
+                                userView = new LoggedInUserView(displayName, userId, preferenzeSync);
                                 android.util.Log.d("LoginViewModel", "Preferenze preparate per sincronizzazione: " + preferenzeSync);
                             } catch (org.json.JSONException e) {
                                 android.util.Log.e("LoginViewModel", "Errore nel parsing delle preferenze", e);
-                                LoggedInUserView userView = new LoggedInUserView(displayName, userId);
-                                loginResult.postValue(LoginResult.success(userView));
-                                return;
+                                userView = new LoggedInUserView(displayName, userId);
                             }
                         } else {
-                            LoggedInUserView userView = new LoggedInUserView(displayName, userId);
-                            loginResult.postValue(LoginResult.success(userView));
-                            return;
+                            userView = new LoggedInUserView(displayName, userId);
                         }
 
-                        LoggedInUserView userView = new LoggedInUserView(displayName, userId, userObj.optString("_preferenze_sync"));
                         loginResult.postValue(LoginResult.success(userView));
                     } else {
                         loginResult.postValue(LoginResult.error(R.string.login_failed));

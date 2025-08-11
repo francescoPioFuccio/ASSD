@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
+import java.util.Locale;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,7 +28,7 @@ import com.google.android.gms.location.Priority;
 public class NavigationActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 3001;
-    private static final float ARRIVAL_THRESHOLD_METERS = 50.0f; // Raggio di 50 metri per considerare l'arrivo
+    private static final float ARRIVAL_THRESHOLD_METERS = 200.0f; // Raggio di 200 metri per considerare l'arrivo
     private static final long LOCATION_UPDATE_INTERVAL = 5000; // 5 secondi
     private static final long LOCATION_FASTEST_INTERVAL = 2000; // 2 secondi
 
@@ -41,6 +42,8 @@ public class NavigationActivity extends AppCompatActivity {
     private double museoLatitudine;
     private double museoLongitudine;
     private String museoIndirizzo;
+    private Double currentLatitude = null;
+    private Double currentLongitude = null;
 
     // Stato della navigazione
     private boolean isNavigating = false;
@@ -118,6 +121,9 @@ public class NavigationActivity extends AppCompatActivity {
         binding.openMapsButton.setOnClickListener(v -> openGoogleMaps());
         binding.stopNavigationButton.setOnClickListener(v -> stopNavigationAndGoHome());
         binding.backButton.setOnClickListener(v -> stopNavigationAndGoHome());
+        
+        // Aggiungi bottone per confermare manualmente l'arrivo (temporaneo)
+        // binding.confirmArrivalButton.setOnClickListener(v -> onArrivalAtDestination());
 
         // Inizialmente disabilita il bottone per aprire Maps
         binding.openMapsButton.setEnabled(false);
@@ -166,6 +172,8 @@ public class NavigationActivity extends AppCompatActivity {
     private void updateCurrentLocation(Location location) {
         double currentLat = location.getLatitude();
         double currentLng = location.getLongitude();
+        currentLatitude = currentLat;
+        currentLongitude = currentLng;
 
         // Calcola la distanza dalla destinazione
         float distance = calculateDistance(currentLat, currentLng, museoLatitudine, museoLongitudine);
@@ -184,7 +192,7 @@ public class NavigationActivity extends AppCompatActivity {
             }
         });
 
-        Log.d("NavigationActivity", "Posizione aggiornata. Distanza: " + distance + " metri");
+        Log.d("NavigationActivity", "Posizione aggiornata. Distanza: " + distance + " metri da " + museoNome);
     }
 
     private void checkArrival(Location location) {
@@ -194,6 +202,9 @@ public class NavigationActivity extends AppCompatActivity {
                 museoLatitudine,
                 museoLongitudine
         );
+
+        // Log per debug
+        Log.d("NavigationActivity", "Distanza dal museo: " + distance + " metri (soglia: " + ARRIVAL_THRESHOLD_METERS + ")");
 
         if (distance <= ARRIVAL_THRESHOLD_METERS) {
             Log.d("NavigationActivity", "Utente arrivato a destinazione!");
@@ -215,26 +226,110 @@ public class NavigationActivity extends AppCompatActivity {
 
     private void openGoogleMaps() {
         try {
-            // Crea URI per Google Maps con direzioni
-            String uri = String.format("google.navigation:q=%f,%f&mode=walking",
-                    museoLatitudine, museoLongitudine);
+            // Usa coordinate destinazione eventualmente corrette se coincidono con la posizione attuale
+            double destLat = museoLatitudine;
+            double destLng = museoLongitudine;
+            if (currentLatitude != null && currentLongitude != null) {
+                float samePointMeters = calculateDistance(currentLatitude, currentLongitude, destLat, destLng);
+                if (samePointMeters < 15f) { // quasi identiche: applica un piccolo offset (circa 300-500m)
+                    double offsetMeters = 400.0;
+                    // ~0.000009 deg di lat per metro
+                    double degPerMeterLat = 1.0 / 111_111.0;
+                    double cosLat = Math.cos(Math.toRadians(currentLatitude));
+                    if (cosLat < 0.1) cosLat = 0.1;
+                    double degPerMeterLon = 1.0 / (111_111.0 * cosLat);
+                    destLat = currentLatitude + offsetMeters * degPerMeterLat;
+                    destLng = currentLongitude + offsetMeters * degPerMeterLon;
+                    Log.w("NavigationActivity", String.format(Locale.US,
+                            "Dest uguale all'origine: applico offset. New dest=(%f,%f)", destLat, destLng));
+                }
+            }
+            // Prova prima con l'URI di navigazione
+            // Se abbiamo la posizione corrente, esplicitiamo sia origin che destination per evitare
+            // che Maps interpreti la stessa posizione come destinazione
+            if (currentLatitude != null && currentLongitude != null) {
+                String directionsUri = String.format(Locale.US,
+                        "https://www.google.com/maps/dir/?api=1&origin=%f,%f&destination=%f,%f&travelmode=walking",
+                        currentLatitude, currentLongitude, destLat, destLng);
+                Intent directionsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(directionsUri));
+                // Preferisci Google Maps se presente, altrimenti lascia scegliere
+                directionsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                if (directionsIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(directionsIntent);
+                    hasOpenedMaps = true;
+                    binding.statusTextView.setText("Indicazioni aperte - Seguendo il percorso...");
+                    Toast.makeText(this, "Indicazioni aperte in Maps", Toast.LENGTH_LONG).show();
+                    Log.d("NavigationActivity", "Directions con origin esplicito: " + directionsUri);
+                    return;
+                }
+            }
+
+            // Fallback: schema di navigazione rapido
+            String uri = String.format(Locale.US, "google.navigation:q=%f,%f&mode=walking",
+                    destLat, destLng);
 
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
             mapIntent.setPackage("com.google.android.apps.maps");
+            mapIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
             // Verifica se Google Maps è installato
             if (mapIntent.resolveActivity(getPackageManager()) != null) {
                 startActivity(mapIntent);
                 hasOpenedMaps = true;
                 binding.statusTextView.setText("Google Maps aperto - Seguendo il percorso...");
+                
+                // Mostra un messaggio informativo
+                Toast.makeText(this, "Google Maps aperto. Torna qui per fermare la navigazione", Toast.LENGTH_LONG).show();
+                
+                // Log per debug
+                Log.d("NavigationActivity", "Google Maps aperto con successo per: " + museoNome);
             } else {
-                // Fallback: apri nel browser web
-                String webUri = String.format("https://www.google.com/maps/dir/?api=1&destination=%f,%f&travelmode=walking",
-                        museoLatitudine, museoLongitudine);
+                // Fallback 1: prova con URI diverso
+                try {
+                    String fallbackUri;
+                    if (currentLatitude != null && currentLongitude != null) {
+                        // Usa lo schema saddr/daddr esplicito
+                        fallbackUri = String.format(Locale.US,
+                                "http://maps.google.com/maps?saddr=%f,%f&daddr=%f,%f",
+                                currentLatitude, currentLongitude, destLat, destLng);
+                    } else {
+                        // Pin su mappa
+                        fallbackUri = String.format(Locale.US, "geo:%f,%f?q=%f,%f(%s)",
+                                destLat, destLng, destLat, destLng, museoNome);
+                    }
+                    Intent fallbackIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(fallbackUri));
+                    fallbackIntent.setPackage("com.google.android.apps.maps");
+                    fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    
+                    if (fallbackIntent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(fallbackIntent);
+                        hasOpenedMaps = true;
+                        binding.statusTextView.setText("Google Maps aperto (fallback) - Seguendo il percorso...");
+                        Toast.makeText(this, "Google Maps aperto. Torna qui per fermare la navigazione", Toast.LENGTH_LONG).show();
+                        Log.d("NavigationActivity", "Google Maps aperto con fallback per: " + museoNome + ", uri=" + fallbackUri);
+                        return;
+                    }
+                } catch (Exception e) {
+                    Log.w("NavigationActivity", "Fallback 1 fallito: " + e.getMessage());
+                }
+                
+                // Fallback 2: apri nel browser web
+                String webUri;
+                if (currentLatitude != null && currentLongitude != null) {
+                    webUri = String.format(Locale.US,
+                            "https://www.google.com/maps/dir/?api=1&origin=%f,%f&destination=%f,%f&travelmode=walking",
+                            currentLatitude, currentLongitude, destLat, destLng);
+                } else {
+                    webUri = String.format(Locale.US,
+                            "https://www.google.com/maps/dir/?api=1&destination=%f,%f&travelmode=walking",
+                            destLat, destLng);
+                }
                 Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUri));
+                webIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(webIntent);
                 hasOpenedMaps = true;
                 Toast.makeText(this, "Google Maps non installato, apertura nel browser", Toast.LENGTH_SHORT).show();
+                Log.d("NavigationActivity", "Apertura nel browser web per: " + museoNome + ", uri=" + webUri);
             }
         } catch (Exception e) {
             Log.e("NavigationActivity", "Errore nell'aprire Google Maps: " + e.getMessage());
@@ -269,6 +364,7 @@ public class NavigationActivity extends AppCompatActivity {
 
     private void stopNavigationAndGoHome() {
         stopLocationUpdates();
+        Toast.makeText(this, "Navigazione fermata", Toast.LENGTH_SHORT).show();
         goToHomeActivity();
     }
 
@@ -300,6 +396,24 @@ public class NavigationActivity extends AppCompatActivity {
         super.onPause();
         // Non fermare gli aggiornamenti di posizione quando l'app va in background
         // per continuare a monitorare l'arrivo
+        Log.d("NavigationActivity", "App in background - continuando a monitorare la posizione");
+        
+        // Se Google Maps è stato aperto, non fare nulla di speciale
+        if (hasOpenedMaps) {
+            Log.d("NavigationActivity", "Google Maps è aperto, app in background");
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("NavigationActivity", "App tornata in foreground");
+        
+        // Se Google Maps è stato aperto, aggiorna lo stato
+        if (hasOpenedMaps) {
+            binding.statusTextView.setText("Google Maps aperto - Torna qui per fermare la navigazione");
+            Log.d("NavigationActivity", "App tornata in foreground dopo apertura Google Maps");
+        }
     }
 
     @Override
@@ -310,7 +424,8 @@ public class NavigationActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        stopNavigationAndGoHome();
-        super.onBackPressed();
+        // Non fermare la navigazione quando si preme back, solo minimizza l'app
+        Log.d("NavigationActivity", "Back pressed - minimizzando l'app");
+        moveTaskToBack(true);
     }
 }

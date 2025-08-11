@@ -6,10 +6,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.app1.R;
+import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -109,12 +111,17 @@ public class MuseiAdapter extends RecyclerView.Adapter<MuseiAdapter.MuseoViewHol
                         String indirizzo = museo.optString("indirizzo", "");
 
                         if (lat != 0.0 && lng != 0.0) {
+                            // Log e feedback visivo
+                            Log.d("MuseiAdapter", "Navigate click - id=" + id + ", nome=" + nome + ", lat=" + lat + ", lng=" + lng);
+                            Toast.makeText(v.getContext(), String.format(java.util.Locale.US, "Navigazione verso %s (%f,%f)", nome, lat, lng), Toast.LENGTH_SHORT).show();
                             actionListener.onNavigateClick(id, nome, lat, lng, indirizzo);
                         } else {
                             // Fallback ai dettagli se non ci sono coordinate
+                            Log.w("MuseiAdapter", "Coordinate mancanti per id=" + id + ", apertura dettagli");
                             actionListener.onMuseoClick(id);
                         }
                     } catch (Exception e) {
+                        Log.e("MuseiAdapter", "Errore onNavigateClick: " + e.getMessage());
                         actionListener.onMuseoClick(id);
                     }
                 }
