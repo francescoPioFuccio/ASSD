@@ -1,10 +1,8 @@
 package com.example.app1.ui.musei;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -70,86 +68,26 @@ public class MuseiActivity extends AppCompatActivity {
         museiAdapter.setOnMuseoActionListener(new MuseiAdapter.OnMuseoActionListener() {
             @Override
             public void onMuseoClick(String museoId) {
+                // Mostra dettagli del museo
                 showMuseoDetails(museoId);
             }
 
             @Override
             public void onFavoritiClick(String museoId, String museoNome) {
+                // Aggiungi ai preferiti
                 addToFavorites(museoId, museoNome);
             }
 
             @Override
-            public void onVaiAlMuseoClick(String museoId, String museoNome, double lat, double lon) {
-                if (lat == 0.0 && lon == 0.0) {
-                    viewModel.fetchDettaglioMuseo(museoId, currentUserId, new MuseiViewModel.MuseoDetailCallback() {
-                        @Override
-                        public void onSuccess(org.json.JSONObject dettaglio) {
-                            double[] coords = extractCoordinatesFromDetail(dettaglio);
-                            runOnUiThread(() -> {
-                                if (coords[0] != 0.0 || coords[1] != 0.0) {
-                                    startNavigationTo(coords[0], coords[1], museoNome);
-                                } else {
-                                    Toast.makeText(MuseiActivity.this, "Coordinate non disponibili per questo museo", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onError(String error) {
-                            runOnUiThread(() -> Toast.makeText(MuseiActivity.this, "Errore nel recupero coordinate", Toast.LENGTH_SHORT).show());
-                        }
-                    });
-                } else {
-                    startNavigationTo(lat, lon, museoNome);
-                }
+            public void onNavigateClick(String museoId, String museoNome, double lat, double lon, String indirizzo) {
+                // Implementazione vuota o logica di navigazione
+                // Ad esempio:
+                Toast.makeText(MuseiActivity.this, "Naviga verso: " + museoNome, Toast.LENGTH_SHORT).show();
             }
         });
 
         binding.museiRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.museiRecyclerView.setAdapter(museiAdapter);
-    }
-
-    private void startNavigationTo(double lat, double lon, String label) {
-        try {
-            String uri = "google.navigation:q=" + lat + "," + lon + "&mode=d";
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            intent.setPackage("com.google.android.apps.maps");
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-                com.example.app1.ui.navigation.NavigationGeofenceHelper.registerArrivalGeofence(this, label, lat, lon);
-            } else {
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("geo:" + lat + "," + lon + "?q=" + lat + "," + lon + "(" + label + ")"));
-                startActivity(mapIntent);
-            }
-        } catch (Exception e) {
-            Toast.makeText(this, "Impossibile avviare la navigazione", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private double[] extractCoordinatesFromDetail(org.json.JSONObject dettaglio) {
-        try {
-            org.json.JSONObject src = dettaglio;
-            if (dettaglio.has("location")) {
-                src = dettaglio.getJSONObject("location");
-            }
-            double lat = firstPresentDouble(src, new String[]{"lat", "latitude", "latitudine"});
-            double lon = firstPresentDouble(src, new String[]{"lon", "lng", "longitude", "longitudine"});
-            return new double[]{lat, lon};
-        } catch (Exception e) {
-            return new double[]{0.0, 0.0};
-        }
-    }
-
-    private double firstPresentDouble(org.json.JSONObject obj, String[] keys) {
-        for (String k : keys) {
-            if (obj.has(k)) {
-                try {
-                    return obj.getDouble(k);
-                } catch (Exception ignored) {}
-            }
-        }
-        return 0.0;
     }
 
     private void setupObservers() {

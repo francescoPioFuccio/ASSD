@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+
 
     <application
             android:allowBackup="true"
@@ -16,14 +16,15 @@
             android:theme="@style/Theme.MuseoApp">
         <activity
                 android:name=".ui.navigation.NavigationActivity"
-                android:exported="false"/>
+                android:exported="false"
+                android:screenOrientation="portrait" />
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
                 android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg"/>
 
-        <receiver
-                android:name=".ui.navigation.NavigationArrivalReceiver"
-                android:exported="false"/>
+        <meta-data
+                android:name="com.google.android.gms.ads.APPLICATION_ID"
+                android:value="ca-app-pub-3940256099942544~3347511713"/>
 
         <activity
                 android:name=".ui.chat.ChatActivity"
@@ -31,9 +32,6 @@
                 android:label="Chat AI Arte"
                 android:parentActivityName=".ui.home.HomeActivity"
                 android:theme="@style/Theme.MuseoApp"/>
-        <activity
-                android:name=".ui.arrival.MuseumArrivalActivity"
-                android:exported="false"/>
         <activity
                 android:name=".ui.settings.SettingsActivity"
                 android:exported="false"/>

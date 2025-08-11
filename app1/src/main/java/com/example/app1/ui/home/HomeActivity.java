@@ -132,6 +132,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_bonus) {
             startActivity(new Intent(this, PuntiBonusActivity.class));
             //Toast.makeText(this, "Bonus Points Activity not implemented yet", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.vaimuseoButton) {
+            //startActivity(new Intent(this, nav.class));
+            Toast.makeText(this, "Bonus Points Activity not implemented yet", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_chatbot) {
             startActivity(new Intent(this, ChatActivity.class));
             //Toast.makeText(this, "ChatBot Activity not implemented yet", Toast.LENGTH_SHORT).show();

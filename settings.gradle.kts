@@ -36,3 +36,4 @@ findProject(":GestioneOpere:GestioneMusei")?.name = "GestioneMusei"
 include("GestioneMusei")
 include("GestioneMusei")
 include("GestioneMusei")
+include("GestioneNavigazione")

@@ -208,44 +208,4 @@ public class UserController {
                 .entity("{\"message\": \"" + result + "\"}")
                 .build();
     }
-
-    @GET
-    @Path("/navigation/{id}")
-    public Response getNavigation(@PathParam("id") String id) {
-        System.out.println("=== DEBUG GET NAVIGATION ===");
-        System.out.println("Ricevuta richiesta per userId: " + id);
-
-        // Simulazione dei dati di destinazione
-        JSONObject responseJson = new JSONObject();
-        try {
-            // Verifica se l'userId è valido e logga l'operazione
-            if (id == null || id.isEmpty()) {
-                System.out.println("❌ userId non valido!");
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("{\"message\": \"userId non valido.\"}")
-                        .build();
-            }
-
-            // Inserisci qui la logica per recuperare i dati reali dal database o altro
-            responseJson.put("nome", "Museo Nazionale");
-            responseJson.put("indirizzo", "Via San Vittore 21, Milano");
-            responseJson.put("latitudine", 45.4628869);
-            responseJson.put("longitudine", 9.1706523);
-
-            System.out.println("✅ Risposta inviata: " + responseJson.toString());
-
-            return Response.status(Response.Status.OK)
-                    .entity(responseJson.toString())
-                    .build();
-
-        } catch (JSONException e) {
-            System.out.println("❌ Errore JSON: " + e.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore nella creazione della risposta JSON\"}")
-                    .build();
-        }
-    }
-
-
-
 }
