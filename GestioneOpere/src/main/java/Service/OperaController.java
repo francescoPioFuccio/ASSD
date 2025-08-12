@@ -85,113 +85,7 @@ public class OperaController {
      * Endpoint per l'analisi di immagini
      * La app Android invia una foto e riceve un giudizio se va bene o meno
      */
-    @POST
-    @Path("/analizza-foto")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response analizzaFoto(
-            @FormDataParam("file") InputStream fileInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileMetaData,
-            @FormDataParam("userId") String userId,
-            @FormDataParam("descrizione") String descrizione) {
 
-        System.out.println("=== DEBUG ANALISI FOTO ===");
-        System.out.println("Nome file: " + (fileMetaData != null ? fileMetaData.getFileName() : "non disponibile"));
-        System.out.println("UserId: " + userId);
-        System.out.println("Descrizione: " + descrizione);
-
-        try {
-            // Validazione input
-            if (fileInputStream == null) {
-                System.out.println("❌ File mancante");
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("{\"message\": \"File immagine obbligatorio.\"}")
-                        .build();
-            }
-
-            // Leggi il file (per la simulazione)
-            byte[] fileBytes = fileInputStream.readAllBytes();
-            String base64Image = Base64.getEncoder().encodeToString(fileBytes);
-
-            System.out.println("Dimensione file: " + fileBytes.length + " bytes");
-
-            // Chiamata al servizio di analisi immagini (simulato)
-            JSONObject risultatoAnalisi = LLMSimulationService.analizzaImmagine(
-                    base64Image,
-                    fileMetaData != null ? fileMetaData.getFileName() : "image.jpg",
-                    userId,
-                    descrizione
-            );
-
-            System.out.println("✅ Analisi immagine completata");
-            return Response.status(Response.Status.OK)
-                    .entity(risultatoAnalisi.toString())
-                    .build();
-
-        } catch (Exception e) {
-            System.out.println("❌ Errore durante analisi foto: " + e.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore durante l'analisi della foto: " + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
-
-    /**
-     * Endpoint alternativo per analizzare foto inviate come Base64
-     */
-    @POST
-    @Path("/analizza-foto-base64")
-    public Response analizzaFotoBase64(String requestBody) {
-        System.out.println("=== DEBUG ANALISI FOTO BASE64 ===");
-
-        try {
-            JSONObject request = new JSONObject(requestBody);
-
-            // Validazione input
-            if (!request.has("imageBase64") || request.getString("imageBase64").isEmpty()) {
-                System.out.println("❌ Immagine Base64 mancante");
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("{\"message\": \"Immagine in formato Base64 obbligatoria.\"}")
-                        .build();
-            }
-
-            String imageBase64 = request.getString("imageBase64");
-            String userId = request.optString("userId", null);
-            String descrizione = request.optString("descrizione", "");
-            String nomeFile = request.optString("nomeFile", "image.jpg");
-
-            System.out.println("UserId: " + userId);
-            System.out.println("Descrizione: " + descrizione);
-            System.out.println("Nome file: " + nomeFile);
-
-            // Chiamata al servizio di analisi immagini (simulato)
-            JSONObject risultatoAnalisi = LLMSimulationService.analizzaImmagine(
-                    imageBase64,
-                    nomeFile,
-                    userId,
-                    descrizione
-            );
-
-            System.out.println("✅ Analisi immagine Base64 completata");
-            return Response.status(Response.Status.OK)
-                    .entity(risultatoAnalisi.toString())
-                    .build();
-
-        } catch (JSONException e) {
-            System.out.println("❌ Errore parsing JSON: " + e.getMessage());
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"message\": \"Formato JSON non valido.\"}")
-                    .build();
-        } catch (Exception e) {
-            System.out.println("❌ Errore interno: " + e.getMessage());
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore interno del server: " + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
-
-    /**
-     * Endpoint per ottenere informazioni su un'opera
-     */
     @GET
     @Path("/info/{operaId}")
     public Response getInfoOpera(@PathParam("operaId") String operaId, @QueryParam("userId") String userId) {
@@ -272,4 +166,164 @@ public class OperaController {
                 .entity(health.toString())
                 .build();
     }
+
+
+    /**
+     * Endpoint per ottenere statistiche del servizio
+     */
+
+
+    /**
+     * Verifica se il file è un'immagine valida
+     */
+    private boolean isValidImageFile(String fileName, byte[] fileBytes) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return false;
+        }
+
+        // Controllo estensione
+        String extension = getFileExtension(fileName).toLowerCase();
+        boolean validExtension = extension.equals("jpg") ||
+                extension.equals("jpeg") ||
+                extension.equals("png");
+
+        if (!validExtension) {
+            return false;
+        }
+
+        // Controllo signature del file (magic numbers)
+        return hasValidImageSignature(fileBytes, extension);
+    }
+
+    /**
+     * Estrae l'estensione dal nome file
+     */
+    private String getFileExtension(String fileName) {
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot > 0 && lastDot < fileName.length() - 1) {
+            return fileName.substring(lastDot + 1);
+        }
+        return "";
+    }
+
+    /**
+     * Verifica la signature del file immagine
+     */
+    private boolean hasValidImageSignature(byte[] fileBytes, String extension) {
+        if (fileBytes.length < 4) {
+            return false;
+        }
+
+        // JPEG signature: FF D8 FF
+        if ("jpg".equals(extension) || "jpeg".equals(extension)) {
+            return fileBytes[0] == (byte) 0xFF &&
+                    fileBytes[1] == (byte) 0xD8 &&
+                    fileBytes[2] == (byte) 0xFF;
+        }
+
+        // PNG signature: 89 50 4E 47
+        if ("png".equals(extension)) {
+            return fileBytes[0] == (byte) 0x89 &&
+                    fileBytes[1] == (byte) 0x50 &&
+                    fileBytes[2] == (byte) 0x4E &&
+                    fileBytes[3] == (byte) 0x47;
+        }
+
+        return true; // Default per altri formati
+    }
+
+
+    @POST
+    @Path("/analizza-foto")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response analizzaFoto(
+            @FormDataParam("file") InputStream fileInputStream,
+            @FormDataParam("file") FormDataContentDisposition fileMetaData,
+            @FormDataParam("userId") String userId,
+            @FormDataParam("descrizione") String descrizione) {
+
+        System.out.println("=== DEBUG ANALISI FOTO ===");
+        System.out.println("Nome file: " + (fileMetaData != null ? fileMetaData.getFileName() : "non disponibile"));
+        System.out.println("UserId: " + userId);
+        System.out.println("Descrizione: " + descrizione);
+
+        try {
+            // Validazione input
+            if (fileInputStream == null) {
+                System.out.println("❌ File mancante");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"File immagine obbligatorio.\"}")
+                        .build();
+            }
+
+            if (userId == null || userId.trim().isEmpty()) {
+                System.out.println("❌ UserId mancante");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"UserId è obbligatorio.\"}")
+                        .build();
+            }
+
+            // Leggi il file
+            byte[] fileBytes = fileInputStream.readAllBytes();
+            String base64Image = Base64.getEncoder().encodeToString(fileBytes);
+
+            System.out.println("Dimensione file: " + fileBytes.length + " bytes");
+            System.out.println("Formato base64 creato: " + (base64Image.length() > 100 ?
+                    base64Image.substring(0, 100) + "..." : base64Image));
+
+            // Validazione dimensione file (max 10MB)
+            if (fileBytes.length > 10 * 1024 * 1024) {
+                System.out.println("❌ File troppo grande");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"File troppo grande. Dimensione massima: 10MB\"}")
+                        .build();
+            }
+
+            // Validazione tipo file (controllo molto semplice)
+            String fileName = fileMetaData != null ? fileMetaData.getFileName() : "";
+            if (!isValidImageFile(fileName, fileBytes)) {
+                System.out.println("❌ Tipo file non valido");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"Formato file non supportato. Usa JPG, PNG o JPEG.\"}")
+                        .build();
+            }
+
+            // Chiamata al servizio di analisi immagini
+            JSONObject risultatoAnalisi = LLMSimulationService.analizzaImmagine(
+                    base64Image,
+                    fileName,
+                    userId,
+                    descrizione != null ? descrizione : ""
+            );
+
+            // Aggiungi informazioni tecniche alla risposta
+            risultatoAnalisi.put("fileDimensioneBytes", fileBytes.length);
+            risultatoAnalisi.put("fileName", fileName);
+            risultatoAnalisi.put("analisiCompletataIl", System.currentTimeMillis());
+
+            System.out.println("✅ Analisi immagine completata con successo");
+            System.out.println("Risultato: " + risultatoAnalisi.optString("status", "UNKNOWN"));
+
+            return Response.status(Response.Status.OK)
+                    .entity(risultatoAnalisi.toString())
+                    .build();
+
+        } catch (OutOfMemoryError e) {
+            System.out.println("❌ Memoria insufficiente per processare l'immagine");
+            return Response.status(Response.Status.REQUEST_ENTITY_TOO_LARGE)
+                    .entity("{\"message\": \"Immagine troppo grande per essere processata.\"}")
+                    .build();
+
+        } catch (Exception e) {
+            System.out.println("❌ Errore durante analisi foto: " + e.getMessage());
+            e.printStackTrace();
+
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Errore durante l'analisi della foto: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
+
+
 }

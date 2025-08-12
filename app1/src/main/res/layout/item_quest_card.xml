@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   xmlns:tools="http://schemas.android.com/tools"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="wrap_content"
+                                   android:layout_marginHorizontal="12dp"
+                                   android:layout_marginVertical="8dp"
+                                   app:cardCornerRadius="16dp"
+                                   app:cardElevation="8dp"
+                                   android:foreground="?android:attr/selectableItemBackground">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+        <!-- Icona del tipo di quest -->
+        <ImageView
+                android:id="@+id/questTipoIcon"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/oval"
+                android:backgroundTint="#6200EE"
+                android:padding="10dp"
+                app:tint="@android:color/white"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@android:drawable/star_on" />
+
+        <!-- Container per le informazioni principali -->
+        <LinearLayout
+                android:id="@+id/infoContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toStartOf="@+id/metricsContainer"
+                app:layout_constraintStart_toEndOf="@+id/questTipoIcon"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Titolo della quest -->
+            <TextView
+                    android:id="@+id/questTitolo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Titolo Quest"
+                    android:textColor="#212121"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+
+            <!-- Nome dell'opera -->
+            <TextView
+                    android:id="@+id/questOpera"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Nome Opera"
+                    android:textColor="#424242"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+            <!-- Autore -->
+            <TextView
+                    android:id="@+id/questAutore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="Autore"
+                    android:textColor="#666666"
+                    android:textSize="12sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+            <!-- Container per categoria e difficoltà -->
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                <!-- Categoria -->
+                <TextView
+                        android:id="@+id/questCategoria"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#E8F5E8"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="ARTE"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+                <!-- Difficoltà -->
+                <TextView
+                        android:id="@+id/questDifficolta"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="#FFF3E0"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="2dp"
+                        android:text="MEDIA"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp"
+                        android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Container per metriche (punti, tempo, stato) -->
+        <LinearLayout
+                android:id="@+id/metricsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal|end"
+                android:minWidth="80dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Punti ricompensa -->
+            <TextView
+                    android:id="@+id/questPunti"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="200 pt"
+                    android:textColor="#1976D2"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            <!-- Tempo stimato -->
+            <TextView
+                    android:id="@+id/questTempo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:gravity="center"
+                    android:text="~20 min"
+                    android:textColor="#666666"
+                    android:textSize="11sp" />
+
+            <!-- Stato quest -->
+            <TextView
+                    android:id="@+id/questStato"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="#4CAF50"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="DISPONIBILE"
+                    android:textColor="@android:color/white"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Descrizione -->
+        <TextView
+                android:id="@+id/questDescrizione"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="8dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="Descrizione della quest con informazioni su cosa cercare nel museo"
+                android:textColor="#616161"
+                android:textSize="13sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/questTipoIcon"
+                app:layout_constraintTop_toBottomOf="@+id/infoContainer" />
+
+        <!-- Container per gli indizi -->
+        <LinearLayout
+                android:id="@+id/indizziContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/questTipoIcon"
+                app:layout_constraintTop_toBottomOf="@+id/questDescrizione" />
+
+        <!-- Container per i bottoni di azione -->
+        <LinearLayout
+                android:id="@+id/actionContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/questTipoIcon"
+                app:layout_constraintTop_toBottomOf="@+id/indizziContainer"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+            <!-- Bottone per iniziare la quest -->
+            <Button
+                    android:id="@+id/startQuestButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="#4CAF50"
+                    android:paddingHorizontal="12dp"
+                    android:text="Inizia Quest"
+                    android:textColor="@android:color/white"
+                    android:textSize="11sp"
+                    android:visibility="visible" />
+
+            <!-- Bottone per la foto -->
+            <ImageButton
+                    android:id="@+id/takePhotoButton"
+                    android:layout_width="40dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Scatta foto per completare quest"
+                    android:padding="6dp"
+                    android:src="@android:drawable/ic_menu_camera"
+                    android:tint="#FF5722"
+                    android:visibility="gone" />
+
+            <!-- Bottone dettagli -->
+            <Button
+                    android:id="@+id/viewDetailsButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:backgroundTint="#6200EE"
+                    android:paddingHorizontal="12dp"
+                    android:text="Dettagli"
+                    android:textColor="@android:color/white"
+                    android:textSize="11sp" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
