@@ -4,7 +4,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.REORDER_TASKS"/>
 
     <application
             android:allowBackup="true"
@@ -15,13 +17,16 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.MuseoApp">
         <activity
+                android:name=".ui.quest.QuestActivity"
+                android:exported="false"/>
+        <activity
                 android:name=".ui.navigation.NavigationActivity"
                 android:exported="false"
-                android:screenOrientation="portrait" />
+                android:screenOrientation="portrait"/>
+
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
                 android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg"/>
-
         <meta-data
                 android:name="com.google.android.gms.ads.APPLICATION_ID"
                 android:value="ca-app-pub-3940256099942544~3347511713"/>

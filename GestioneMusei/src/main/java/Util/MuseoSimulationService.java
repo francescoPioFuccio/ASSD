@@ -156,40 +156,84 @@ public class MuseoSimulationService {
         return risultato;
     }
 
-    // === METODI AUSILIARI ===
+    // === METODI AUSILIARI CORRETTI ===
 
-    // Sposta il museo vicino all'utente e aggiunge campi dinamici utili alla lista
+    /**
+     * CORREZIONE PRINCIPALE: Genera coordinate a distanza realistica dall'utente
+     */
     private static void applicaPosizioneEDettagliDinamici(JSONObject museo,
                                                           Double latBase,
                                                           Double lonBase,
                                                           Integer raggio) {
-        // Per 5 minuti in macchina (circa 3-5 km a velocità urbana)
-        double raggioKm = 3.0 + random.nextDouble() * 2.0; // 3-5 km
-        // Conversione approssimativa: 1° ≈ 111km, quindi per 3-5km usiamo 0.003-0.005°
-        double deltaMax = raggioKm / 111000.0; // Circa 0.003-0.005 gradi
-        
-        JSONObject coordinate = new JSONObject();
-        double deltaLat = (random.nextDouble() - 0.5) * deltaMax;
-        double deltaLon = (random.nextDouble() - 0.5) * deltaMax;
+        // Distanza desiderata in km (tra 1 e il raggio massimo richiesto)
+        int raggioEffettivo = (raggio != null && raggio > 0) ? raggio : 20;
+        double distanzaDesiderataKm = 1.0 + random.nextDouble() * (raggioEffettivo - 1.0);
 
+        // CORREZIONE: Conversione corretta gradi-km
+        // 1 grado di latitudine ≈ 111 km
+        // 1 grado di longitudine ≈ 111 km * cos(latitudine)
+        double kmPerGradoLat = 111.0;
+        double kmPerGradoLon = 111.0 * Math.cos(Math.toRadians(latBase));
+
+        // Calcola spostamento in gradi
+        double deltaLatMax = distanzaDesiderataKm / kmPerGradoLat;
+        double deltaLonMax = distanzaDesiderataKm / kmPerGradoLon;
+
+        // Genera posizione casuale entro il raggio
+        double angle = random.nextDouble() * 2 * Math.PI; // Angolo casuale
+        double distance = Math.sqrt(random.nextDouble()) * distanzaDesiderataKm; // Distribuzione uniforme nel cerchio
+
+        double deltaLat = (distance / kmPerGradoLat) * Math.cos(angle);
+        double deltaLon = (distance / kmPerGradoLon) * Math.sin(angle);
+
+        // Arrotonda a 6 decimali per precisione GPS
         double lat = Math.round((latBase + deltaLat) * 1000000.0) / 1000000.0;
         double lon = Math.round((lonBase + deltaLon) * 1000000.0) / 1000000.0;
 
+        // Debug log per verificare le coordinate generate
+        System.out.printf("🎯 Museo %s: Base=(%.6f,%.6f) -> Generato=(%.6f,%.6f), Distanza=%.2fkm%n",
+                museo.optString("nome", "Unknown"), latBase, lonBase, lat, lon, distance);
+
+        JSONObject coordinate = new JSONObject();
         coordinate.put("latitudine", lat);
         coordinate.put("longitudine", lon);
         museo.put("coordinate", coordinate);
+
         // Campi top-level per compatibilità con l'app Android
         museo.put("latitudine", lat);
         museo.put("longitudine", lon);
 
-        // Informazioni dinamiche per la lista - distanza reale calcolata
-        museo.put("distanza", Math.round(raggioKm * 10.0) / 10.0);
+        // Calcola la distanza reale per verifica
+        double distanzaReale = calcolaDistanzaReale(latBase, lonBase, lat, lon);
+
+        // Informazioni dinamiche per la lista
+        museo.put("distanza", Math.round(distanzaReale * 10.0) / 10.0);
         museo.put("rating", Math.round((3.5 + Math.random() * 1.5) * 10.0) / 10.0);
         museo.put("aperto", random.nextBoolean());
         museo.put("ingressoGratuito", random.nextBoolean());
         if (!museo.getBoolean("ingressoGratuito")) {
             museo.put("prezzoIngresso", 5 + random.nextInt(20));
         }
+    }
+
+    /**
+     * Calcola la distanza reale tra due punti usando la formula haversine
+     */
+    private static double calcolaDistanzaReale(double lat1, double lon1, double lat2, double lon2) {
+        final double R = 6371.0; // Raggio Terra in km
+
+        double lat1Rad = Math.toRadians(lat1);
+        double lat2Rad = Math.toRadians(lat2);
+        double deltaLatRad = Math.toRadians(lat2 - lat1);
+        double deltaLonRad = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(deltaLatRad / 2) * Math.sin(deltaLatRad / 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                        Math.sin(deltaLonRad / 2) * Math.sin(deltaLonRad / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
     }
 
     // Normalizza stringa preferenze in un insieme di categorie supportate
@@ -241,17 +285,27 @@ public class MuseoSimulationService {
         museo.put("tipologia", tipologie[museoIndex % tipologie.length]);
         museo.put("descrizione", generaDescrizioneMuseo(tipologie[museoIndex % tipologie.length]));
 
-        // Genera coordinate vicine alla posizione dell'utente
+        // Genera coordinate vicine alla posizione dell'utente (USANDO IL NUOVO METODO CORRETTO)
         JSONObject coordinate = new JSONObject();
-        double deltaLat = (random.nextDouble() - 0.5) * (raggio * 0.01); // Approssimativo: 1° ≈ 111km
-        double deltaLon = (random.nextDouble() - 0.5) * (raggio * 0.01);
+        int raggioEffettivo = (raggio != null && raggio > 0) ? raggio : 20;
+        double distanzaKm = 1.0 + random.nextDouble() * (raggioEffettivo - 1.0);
+
+        // Conversione corretta
+        double kmPerGradoLat = 111.0;
+        double kmPerGradoLon = 111.0 * Math.cos(Math.toRadians(latBase));
+
+        double angle = random.nextDouble() * 2 * Math.PI;
+        double distance = Math.sqrt(random.nextDouble()) * distanzaKm;
+
+        double deltaLat = (distance / kmPerGradoLat) * Math.cos(angle);
+        double deltaLon = (distance / kmPerGradoLon) * Math.sin(angle);
 
         coordinate.put("latitudine", Math.round((latBase + deltaLat) * 1000000.0) / 1000000.0);
         coordinate.put("longitudine", Math.round((lonBase + deltaLon) * 1000000.0) / 1000000.0);
         museo.put("coordinate", coordinate);
 
         // Informazioni aggiuntive
-        museo.put("distanza", Math.round((Math.random() * raggio * 0.8 + 0.5) * 10.0) / 10.0); // km
+        museo.put("distanza", Math.round(distance * 10.0) / 10.0); // km reali
         museo.put("rating", Math.round((3.5 + Math.random() * 1.5) * 10.0) / 10.0); // 3.5-5.0
         museo.put("aperto", random.nextBoolean());
         museo.put("ingressoGratuito", random.nextBoolean());
@@ -381,10 +435,17 @@ public class MuseoSimulationService {
         museo.put("mostreAttuali", mostre);
     }
 
+    /**
+     * CORREZIONE: Database con coordinate più realistiche e distanziate
+     */
     private static Map<String, JSONObject> initializeDatabaseMusei() {
         Map<String, JSONObject> database = new HashMap<>();
 
-        // 1) Arte
+        // Coordinate di Roma come base: 41.9028, 12.4964
+        double baseLatRoma = 41.9028;
+        double baseLonRoma = 12.4964;
+
+        // 1) Arte - Posizionato a circa 2-3 km dal centro
         JSONObject museoArte = new JSONObject();
         museoArte.put("id", "MUS_ARTE");
         museoArte.put("nome", "Galleria d'Arte Moderna");
@@ -392,10 +453,12 @@ public class MuseoSimulationService {
         museoArte.put("categoria", "arte");
         museoArte.put("descrizione", "Collezione di opere d'arte moderna e contemporanea.");
         museoArte.put("indirizzo", "Via delle Arti 1");
-        museoArte.put("coordinate", new JSONObject().put("latitudine", 41.9123).put("longitudine", 12.4801));
+        museoArte.put("coordinate", new JSONObject()
+                .put("latitudine", baseLatRoma + 0.020)  // ~2.2 km nord
+                .put("longitudine", baseLonRoma + 0.015)); // ~1.3 km est
         database.put("MUS_ARTE", museoArte);
 
-        // 2) Scienza
+        // 2) Scienza - Posizionato a circa 3-4 km dal centro
         JSONObject museoScienza = new JSONObject();
         museoScienza.put("id", "MUS_SCIENZA");
         museoScienza.put("nome", "Museo delle Scienze");
@@ -403,10 +466,12 @@ public class MuseoSimulationService {
         museoScienza.put("categoria", "scienza");
         museoScienza.put("descrizione", "Esposizioni interattive su fisica, chimica e biologia.");
         museoScienza.put("indirizzo", "Piazza della Scienza 5");
-        museoScienza.put("coordinate", new JSONObject().put("latitudine", 41.9055).put("longitudine", 12.4905));
+        museoScienza.put("coordinate", new JSONObject()
+                .put("latitudine", baseLatRoma - 0.025)  // ~2.8 km sud
+                .put("longitudine", baseLonRoma + 0.030)); // ~2.6 km est
         database.put("MUS_SCIENZA", museoScienza);
 
-        // 3) Storia
+        // 3) Storia - Posizionato a circa 4-5 km dal centro
         JSONObject museoStoria = new JSONObject();
         museoStoria.put("id", "MUS_STORIA");
         museoStoria.put("nome", "Museo di Storia e Archeologia");
@@ -414,10 +479,12 @@ public class MuseoSimulationService {
         museoStoria.put("categoria", "storia");
         museoStoria.put("descrizione", "Percorso sulla storia locale con reperti archeologici.");
         museoStoria.put("indirizzo", "Corso Storico 10");
-        museoStoria.put("coordinate", new JSONObject().put("latitudine", 41.8977).put("longitudine", 12.4755));
+        museoStoria.put("coordinate", new JSONObject()
+                .put("latitudine", baseLatRoma + 0.035)  // ~3.9 km nord
+                .put("longitudine", baseLonRoma - 0.025)); // ~2.2 km ovest
         database.put("MUS_STORIA", museoStoria);
 
-        // 4) Tecnologia
+        // 4) Tecnologia - Posizionato a circa 5-6 km dal centro
         JSONObject museoTecnologia = new JSONObject();
         museoTecnologia.put("id", "MUS_TECNOLOGIA");
         museoTecnologia.put("nome", "Museo della Tecnologia");
@@ -425,10 +492,12 @@ public class MuseoSimulationService {
         museoTecnologia.put("categoria", "tecnologia");
         museoTecnologia.put("descrizione", "Mostre su innovazione, robotica e informatica.");
         museoTecnologia.put("indirizzo", "Viale Innovazione 3");
-        museoTecnologia.put("coordinate", new JSONObject().put("latitudine", 41.9202).put("longitudine", 12.5002));
+        museoTecnologia.put("coordinate", new JSONObject()
+                .put("latitudine", baseLatRoma - 0.040)  // ~4.4 km sud
+                .put("longitudine", baseLonRoma + 0.045)); // ~3.9 km est
         database.put("MUS_TECNOLOGIA", museoTecnologia);
 
-        // 5) Natura
+        // 5) Natura - Posizionato a circa 6-7 km dal centro
         JSONObject museoNatura = new JSONObject();
         museoNatura.put("id", "MUS_NATURA");
         museoNatura.put("nome", "Museo di Scienze Naturali");
@@ -436,10 +505,11 @@ public class MuseoSimulationService {
         museoNatura.put("categoria", "natura");
         museoNatura.put("descrizione", "Biodiversità, geologia e ambienti naturali.");
         museoNatura.put("indirizzo", "Largo Natura 7");
-        museoNatura.put("coordinate", new JSONObject().put("latitudine", 41.9301).put("longitudine", 12.4707));
+        museoNatura.put("coordinate", new JSONObject()
+                .put("latitudine", baseLatRoma + 0.050)  // ~5.6 km nord
+                .put("longitudine", baseLonRoma - 0.040)); // ~3.5 km ovest
         database.put("MUS_NATURA", museoNatura);
 
         return database;
     }
-
 }

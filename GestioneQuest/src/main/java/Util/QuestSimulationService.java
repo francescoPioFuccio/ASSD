@@ -1,0 +1,696 @@
+package Util;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.util.*;
+
+public class QuestSimulationService {
+
+    private static final Random random = new Random();
+    private static final Map<String, JSONObject> questUtenti = new HashMap<>();
+    private static final Map<String, JSONObject> storicoUtenti = new HashMap<>();
+
+    // Database simulato delle quest per diversi musei
+    private static final Map<String, List<JSONObject>> DATABASE_QUEST = initializeDatabaseQuest();
+
+    /**
+     * Ottiene le quest disponibili per un museo basate su preferenze utente
+     */
+    public static JSONObject getQuestDisponibili(String userId, String museoId,
+                                                 String preferenze, String difficolta) {
+        System.out.println("🏛️ Simulazione recupero quest per museo: " + museoId);
+
+        // Simulazione delay di rete
+        try {
+            Thread.sleep(random.nextInt(400) + 100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        JSONObject risultato = new JSONObject();
+
+        // Ottieni quest per il museo
+        List<JSONObject> questMuseo = DATABASE_QUEST.get(museoId);
+
+        if (questMuseo == null || questMuseo.isEmpty()) {
+            // Se non ci sono quest specifiche per il museo, genera quest generiche
+            questMuseo = generaQuestGeneriche(museoId);
+        }
+
+        // Filtra per preferenze se specificate
+        List<JSONObject> questFiltrate = filtraQuestPerPreferenze(questMuseo, preferenze);
+
+        // Filtra per difficoltà
+        questFiltrate = filtraQuestPerDifficolta(questFiltrate, difficolta);
+
+        // Limita a massimo 5 quest per non sovraccaricare l'utente
+        if (questFiltrate.size() > 5) {
+            Collections.shuffle(questFiltrate);
+            questFiltrate = questFiltrate.subList(0, 5);
+        }
+
+        // Aggiungi informazioni di stato per ogni quest
+        for (JSONObject quest : questFiltrate) {
+            aggiungiStatoQuest(quest, userId);
+        }
+
+        JSONArray questArray = new JSONArray();
+        for (JSONObject quest : questFiltrate) {
+            questArray.put(quest);
+        }
+
+        risultato.put("found", true);
+        risultato.put("success", true);
+        risultato.put("userId", userId);
+        risultato.put("museoId", museoId);
+        risultato.put("quest", questArray);
+        risultato.put("totalFound", questArray.length());
+        risultato.put("filtri", new JSONObject()
+                .put("preferenze", preferenze)
+                .put("difficolta", difficolta));
+        risultato.put("timestamp", System.currentTimeMillis());
+
+        System.out.println("🎯 Quest generate con successo (" + questArray.length() + ")");
+        return risultato;
+    }
+
+    /**
+     * Ottiene i dettagli completi di una quest specifica
+     */
+    public static JSONObject getDettaglioQuest(String questId, String userId) {
+        System.out.println("📋 Simulazione recupero dettagli quest: " + questId);
+
+        JSONObject dettaglio = new JSONObject();
+
+        // Cerca la quest in tutti i musei
+        JSONObject questTrovata = null;
+        for (List<JSONObject> questMuseo : DATABASE_QUEST.values()) {
+            for (JSONObject quest : questMuseo) {
+                if (questId.equals(quest.getString("idQuest"))) {
+                    questTrovata = new JSONObject(quest.toString());
+                    break;
+                }
+            }
+            if (questTrovata != null) break;
+        }
+
+        if (questTrovata == null) {
+            // Genera quest al volo se non trovata
+            questTrovata = generaQuestDettagliata(questId);
+        }
+
+        dettaglio.put("found", true);
+        dettaglio.put("idQuest", questId);
+        dettaglio.put("userId", userId);
+
+        // Copia tutti i dati della quest
+        for (String key : questTrovata.keySet()) {
+            dettaglio.put(key, questTrovata.get(key));
+        }
+
+        // Aggiungi dettagli extra per la visualizzazione completa
+        aggiungiDettagliCompleti(dettaglio, userId);
+
+        dettaglio.put("timestamp", System.currentTimeMillis());
+        return dettaglio;
+    }
+
+    /**
+     * Simula l'avvio di una quest
+     */
+    public static JSONObject iniziaQuest(String userId, String questId) {
+        System.out.println("🚀 Simulazione avvio quest: " + questId + " per utente: " + userId);
+
+        JSONObject risultato = new JSONObject();
+
+        // Verifica se la quest esiste
+        boolean questEsiste = verificaEsistenzaQuest(questId);
+
+        if (!questEsiste) {
+            risultato.put("success", false);
+            risultato.put("message", "Quest non trovata");
+            return risultato;
+        }
+
+        // Verifica se l'utente ha già una quest attiva
+        JSONObject questAttive = questUtenti.get(userId);
+        if (questAttive != null && questAttive.has("questAttiva")) {
+            risultato.put("success", false);
+            risultato.put("message", "Hai già una quest attiva. Completa quella prima di iniziarne una nuova.");
+            return risultato;
+        }
+
+        // Salva la quest come attiva per l'utente
+        JSONObject questData = new JSONObject();
+        questData.put("questAttiva", questId);
+        questData.put("dataInizio", System.currentTimeMillis());
+        questData.put("stato", "in_corso");
+        questData.put("progressoOpere", new JSONArray()); // Opere già trovate
+
+        questUtenti.put(userId, questData);
+
+        risultato.put("success", true);
+        risultato.put("message", "Quest avviata con successo!");
+        risultato.put("questId", questId);
+        risultato.put("userId", userId);
+        risultato.put("dataInizio", questData.getLong("dataInizio"));
+        risultato.put("stato", "in_corso");
+        risultato.put("timestamp", System.currentTimeMillis());
+
+        return risultato;
+    }
+
+    /**
+     * Simula il completamento di una quest
+     */
+    public static JSONObject completaQuest(String userId, String questId, int tempoCompletamento) {
+        System.out.println("🏆 Simulazione completamento quest: " + questId);
+
+        JSONObject risultato = new JSONObject();
+
+        // Ottieni dati quest utente
+        JSONObject questData = questUtenti.get(userId);
+        if (questData == null || !questId.equals(questData.optString("questAttiva"))) {
+            risultato.put("success", false);
+            risultato.put("message", "Quest non attiva per questo utente");
+            return risultato;
+        }
+
+        // Calcola punteggio basato su tempo e difficoltà
+        int punteggioBase = calcolaPunteggio(questId, tempoCompletamento);
+        int bonus = random.nextInt(50); // Bonus casuale 0-50 punti
+        int punteggioTotale = punteggioBase + bonus;
+
+        // Salva nel storico
+        salvaQuestNelloStorico(userId, questId, punteggioTotale, tempoCompletamento);
+
+        // Rimuovi quest attiva
+        questUtenti.remove(userId);
+
+        risultato.put("success", true);
+        risultato.put("message", "Congratulazioni! Quest completata con successo!");
+        risultato.put("questId", questId);
+        risultato.put("userId", userId);
+        risultato.put("punteggioOttenuto", punteggioTotale);
+        risultato.put("tempoCompletamento", tempoCompletamento);
+        risultato.put("bonus", bonus);
+        risultato.put("dataCompletamento", System.currentTimeMillis());
+        risultato.put("ricompense", generaRicompense(punteggioTotale));
+        risultato.put("timestamp", System.currentTimeMillis());
+
+        return risultato;
+    }
+
+    /**
+     * Ottiene lo storico delle quest dell'utente
+     */
+    public static JSONObject getStoricoQuest(String userId) {
+        System.out.println("📊 Recupero storico quest per utente: " + userId);
+
+        JSONObject storico = storicoUtenti.getOrDefault(userId, new JSONObject());
+
+        if (!storico.has("questCompletate")) {
+            storico.put("questCompletate", new JSONArray());
+            storico.put("statistiche", new JSONObject()
+                    .put("questTotali", 0)
+                    .put("punteggioTotale", 0)
+                    .put("tempoMedioCompletamento", 0));
+        }
+
+        storico.put("userId", userId);
+        storico.put("timestamp", System.currentTimeMillis());
+
+        return storico;
+    }
+
+    /**
+     * Restituisce il numero totale di quest disponibili
+     */
+    public static int getTotaleQuestDisponibili() {
+        int totale = 0;
+        for (List<JSONObject> questMuseo : DATABASE_QUEST.values()) {
+            totale += questMuseo.size();
+        }
+        return totale;
+    }
+
+    // === METODI AUSILIARI ===
+
+    /**
+     * Inizializza il database delle quest per diversi musei
+     */
+    private static Map<String, List<JSONObject>> initializeDatabaseQuest() {
+        Map<String, List<JSONObject>> database = new HashMap<>();
+
+        // Quest per il Museo d'Arte (MUS_ARTE)
+        List<JSONObject> questArte = new ArrayList<>();
+
+        questArte.add(creaQuest("QUEST_ARTE_001", "Trova la Gioconda",
+                "Cerca il ritratto più famoso al mondo di Leonardo da Vinci",
+                "Gioconda", "Leonardo da Vinci", "rinascimento", "facile"));
+
+        questArte.add(creaQuest("QUEST_ARTE_002", "L'Ultima Cena",
+                "Individua il celebre dipinto dell'ultima cena di Cristo",
+                "L'Ultima Cena", "Leonardo da Vinci", "rinascimento", "media"));
+
+        questArte.add(creaQuest("QUEST_ARTE_003", "La Nascita di Venere",
+                "Trova la dea dell'amore che emerge dalle acque marine",
+                "La Nascita di Venere", "Sandro Botticelli", "rinascimento", "media"));
+
+        questArte.add(creaQuest("QUEST_ARTE_004", "La Notte Stellata",
+                "Cerca il cielo vorticoso dipinto dal maestro olandese",
+                "La Notte Stellata", "Vincent van Gogh", "impressionismo", "difficile"));
+
+        database.put("MUS_ARTE", questArte);
+
+        // Quest per il Museo delle Scienze (MUS_SCIENZA)
+        List<JSONObject> questScienza = new ArrayList<>();
+
+        questScienza.add(creaQuest("QUEST_SCI_001", "Il Fossile del T-Rex",
+                "Trova il più grande predatore preistorico mai esistito",
+                "Scheletro di Tyrannosaurus Rex", "Paleontologia", "paleontologia", "facile"));
+
+        questScienza.add(creaQuest("QUEST_SCI_002", "La Tavola Periodica Originale",
+                "Cerca la prima versione della classificazione degli elementi",
+                "Tavola Periodica di Mendeleev", "Dmitri Mendeleev", "chimica", "media"));
+
+        questScienza.add(creaQuest("QUEST_SCI_003", "Il Telescopio di Galileo",
+                "Individua lo strumento che rivoluzionò l'astronomia",
+                "Telescopio Galileiano", "Galileo Galilei", "astronomia", "difficile"));
+
+        database.put("MUS_SCIENZA", questScienza);
+
+        // Quest per il Museo di Storia (MUS_STORIA)
+        List<JSONObject> questStoria = new ArrayList<>();
+
+        questStoria.add(creaQuest("QUEST_STO_001", "La Stele di Rosetta",
+                "Trova la chiave per decifrare i geroglifici egizi",
+                "Stele di Rosetta", "Antico Egitto", "archeologia", "media"));
+
+        questStoria.add(creaQuest("QUEST_STO_002", "L'Armatura del Cavaliere",
+                "Cerca l'armatura completa di un cavaliere medievale",
+                "Armatura Medievale", "Periodo Medievale", "storia medievale", "facile"));
+
+        questStoria.add(creaQuest("QUEST_STO_003", "Il Manoscritto Illuminato",
+                "Individua il prezioso libro decorato a mano dai monaci",
+                "Libro delle Ore", "Monasteri Medievali", "arte medievale", "difficile"));
+
+        database.put("MUS_STORIA", questStoria);
+
+        // Quest per il Museo della Tecnologia (MUS_TECNOLOGIA)
+        List<JSONObject> questTecnologia = new ArrayList<>();
+
+        questTecnologia.add(creaQuest("QUEST_TEC_001", "Il Primo Computer",
+                "Trova la macchina che diede inizio all'era digitale",
+                "ENIAC", "Ingegneria Informatica", "informatica", "media"));
+
+        questTecnologia.add(creaQuest("QUEST_TEC_002", "L'Automobile di Ford",
+                "Cerca l'auto che rivoluzionò la produzione industriale",
+                "Ford Modello T", "Henry Ford", "industria", "facile"));
+
+        database.put("MUS_TECNOLOGIA", questTecnologia);
+
+        // Quest per il Museo di Scienze Naturali (MUS_NATURA)
+        List<JSONObject> questNatura = new ArrayList<>();
+
+        questNatura.add(creaQuest("QUEST_NAT_001", "La Farfalla Monarca",
+                "Trova l'esemplare del lepidottero migratore più famoso",
+                "Farfalla Monarca", "Natura", "entomologia", "facile"));
+
+        questNatura.add(creaQuest("QUEST_NAT_002", "Il Cristallo di Quarzo Gigante",
+                "Cerca il più grande cristallo della collezione mineralogica",
+                "Quarzo Rosa Gigante", "Geologia", "mineralogia", "media"));
+
+        database.put("MUS_NATURA", questNatura);
+
+        return database;
+    }
+
+    /**
+     * Crea un oggetto quest con tutti i parametri necessari
+     */
+    private static JSONObject creaQuest(String id, String titoloQuest, String descrizioneQuest,
+                                        String nomeOpera, String autore, String categoria, String difficolta) {
+        JSONObject quest = new JSONObject();
+        quest.put("idQuest", id);
+        quest.put("titoloQuest", titoloQuest);
+        quest.put("descrizioneQuest", descrizioneQuest);
+        quest.put("nomeOpera", nomeOpera);
+        quest.put("autoreOpera", autore);
+        quest.put("categoria", categoria);
+        quest.put("difficolta", difficolta);
+
+        // Aggiungi informazioni extra
+        quest.put("puntiRicompensa", calcolaPuntiRicompensa(difficolta));
+        quest.put("tempoStimato", calcolaTempoStimato(difficolta));
+        quest.put("indizi", generaIndizi(nomeOpera, categoria));
+
+        return quest;
+    }
+
+    private static List<JSONObject> generaQuestGeneriche(String museoId) {
+        System.out.println("🎲 Generazione quest generiche per museo: " + museoId);
+
+        List<JSONObject> questGeneriche = new ArrayList<>();
+
+        String[] titoli = {
+                "Il Mistero dell'Opera Nascosta",
+                "Caccia al Tesoro Artistico",
+                "Trova l'Opera Perduta",
+                "L'Enigma dell'Artista",
+                "Scopri il Capolavoro"
+        };
+
+        String[] opere = {
+                "Opera Misteriosa", "Capolavoro Nascosto", "Tesoro del Museo",
+                "Pezzo da Collezione", "Opera Rara"
+        };
+
+        for (int i = 0; i < 3; i++) {
+            String questId = "QUEST_GEN_" + museoId + "_" + String.format("%03d", i + 1);
+            String titolo = titoli[i % titoli.length];
+            String opera = opere[i % opere.length];
+            String difficolta = (i == 0) ? "facile" : (i == 1) ? "media" : "difficile";
+
+            questGeneriche.add(creaQuest(
+                    questId,
+                    titolo,
+                    "Una quest generica per esplorare il museo e scoprire opere interessanti",
+                    opera,
+                    "Artista Sconosciuto",
+                    "generale",
+                    difficolta
+            ));
+        }
+
+        return questGeneriche;
+    }
+
+    private static List<JSONObject> filtraQuestPerPreferenze(List<JSONObject> quest, String preferenze) {
+        if (preferenze == null || preferenze.trim().isEmpty()) {
+            return quest;
+        }
+
+        String prefLower = preferenze.toLowerCase();
+        List<JSONObject> filtrate = new ArrayList<>();
+
+        for (JSONObject q : quest) {
+            String categoria = q.optString("categoria", "").toLowerCase();
+            if (prefLower.contains(categoria) || categoria.contains("generale")) {
+                filtrate.add(q);
+            }
+        }
+
+        return filtrate.isEmpty() ? quest : filtrate;
+    }
+
+    private static List<JSONObject> filtraQuestPerDifficolta(List<JSONObject> quest, String difficolta) {
+        if (difficolta == null || "tutte".equalsIgnoreCase(difficolta)) {
+            return quest;
+        }
+
+        List<JSONObject> filtrate = new ArrayList<>();
+        for (JSONObject q : quest) {
+            String questDifficolta = q.optString("difficolta", "media");
+            if (questDifficolta.equalsIgnoreCase(difficolta)) {
+                filtrate.add(q);
+            }
+        }
+
+        return filtrate.isEmpty() ? quest : filtrate;
+    }
+
+    private static void aggiungiStatoQuest(JSONObject quest, String userId) {
+        // Verifica se l'utente ha già completato questa quest
+        JSONObject storico = storicoUtenti.get(userId);
+        boolean completata = false;
+
+        if (storico != null && storico.has("questCompletate")) {
+            JSONArray questCompletate = storico.getJSONArray("questCompletate");
+            for (int i = 0; i < questCompletate.length(); i++) {
+                JSONObject questCompleta = questCompletate.getJSONObject(i);
+                if (quest.getString("idQuest").equals(questCompleta.getString("questId"))) {
+                    completata = true;
+                    break;
+                }
+            }
+        }
+
+        // Verifica se è la quest attualmente attiva
+        JSONObject questAttive = questUtenti.get(userId);
+        boolean attiva = questAttive != null &&
+                quest.getString("idQuest").equals(questAttive.optString("questAttiva"));
+
+        quest.put("completata", completata);
+        quest.put("attiva", attiva);
+        quest.put("disponibile", !completata && !attiva);
+    }
+
+    private static void aggiungiDettagliCompleti(JSONObject quest, String userId) {
+        String questId = quest.getString("idQuest");
+
+        // Informazioni dettagliate per la quest
+        JSONObject dettagliOpera = new JSONObject();
+        dettagliOpera.put("dimensioni", generaDimensioniOpera());
+        dettagliOpera.put("anno", generaAnnoOpera(quest.optString("categoria")));
+        dettagliOpera.put("tecnica", generaTecnicaOpera(quest.optString("categoria")));
+        dettagliOpera.put("provenienza", generaProvenienzaOpera());
+        quest.put("dettagliOpera", dettagliOpera);
+
+        // Obiettivi della quest
+        JSONArray obiettivi = new JSONArray();
+        obiettivi.put("Individua l'opera d'arte specificata");
+        obiettivi.put("Leggi le informazioni sulla targa descrittiva");
+        obiettivi.put("Scatta una foto dell'opera (opzionale)");
+        if ("difficile".equals(quest.optString("difficolta"))) {
+            obiettivi.put("Rispondi a una domanda sull'opera");
+        }
+        quest.put("obiettivi", obiettivi);
+
+        // Suggerimenti per trovare l'opera
+        quest.put("suggerimenti", generaSuggerimenti(quest.optString("categoria")));
+
+        // Informazioni di completamento
+        JSONObject infoCompletamento = new JSONObject();
+        infoCompletamento.put("verificaRichiesta", true);
+        infoCompletamento.put("metodiVerifica", new JSONArray()
+                .put("Scansione QR code vicino all'opera")
+                .put("Conferma posizione GPS")
+                .put("Riconoscimento fotografico"));
+        quest.put("completamento", infoCompletamento);
+    }
+
+    private static boolean verificaEsistenzaQuest(String questId) {
+        for (List<JSONObject> questMuseo : DATABASE_QUEST.values()) {
+            for (JSONObject quest : questMuseo) {
+                if (questId.equals(quest.getString("idQuest"))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static int calcolaPunteggio(String questId, int tempoCompletamento) {
+        // Ottieni difficoltà della quest
+        String difficolta = "media"; // default
+
+        for (List<JSONObject> questMuseo : DATABASE_QUEST.values()) {
+            for (JSONObject quest : questMuseo) {
+                if (questId.equals(quest.getString("idQuest"))) {
+                    difficolta = quest.optString("difficolta", "media");
+                    break;
+                }
+            }
+        }
+
+        // Punteggio base per difficoltà
+        int punteggioBase = switch (difficolta) {
+            case "facile" -> 100;
+            case "media" -> 200;
+            case "difficile" -> 300;
+            default -> 150;
+        };
+
+        // Bonus tempo: più veloce = più punti
+        int bonusTempo = Math.max(0, 50 - tempoCompletamento);
+
+        return punteggioBase + bonusTempo;
+    }
+
+    private static void salvaQuestNelloStorico(String userId, String questId, int punteggio, int tempo) {
+        JSONObject storico = storicoUtenti.getOrDefault(userId, new JSONObject());
+
+        if (!storico.has("questCompletate")) {
+            storico.put("questCompletate", new JSONArray());
+            storico.put("statistiche", new JSONObject()
+                    .put("questTotali", 0)
+                    .put("punteggioTotale", 0)
+                    .put("tempoTotaleMinuti", 0));
+        }
+
+        // Aggiungi quest completata
+        JSONObject questCompletata = new JSONObject();
+        questCompletata.put("questId", questId);
+        questCompletata.put("dataCompletamento", System.currentTimeMillis());
+        questCompletata.put("punteggio", punteggio);
+        questCompletata.put("tempoCompletamento", tempo);
+
+        storico.getJSONArray("questCompletate").put(questCompletata);
+
+        // Aggiorna statistiche
+        JSONObject stats = storico.getJSONObject("statistiche");
+        stats.put("questTotali", stats.getInt("questTotali") + 1);
+        stats.put("punteggioTotale", stats.getInt("punteggioTotale") + punteggio);
+        stats.put("tempoTotaleMinuti", stats.getInt("tempoTotaleMinuti") + tempo);
+
+        storicoUtenti.put(userId, storico);
+    }
+
+    private static JSONObject generaRicompense(int punteggio) {
+        JSONObject ricompense = new JSONObject();
+
+        // Badge basati sul punteggio
+        JSONArray badge = new JSONArray();
+        if (punteggio >= 250) {
+            badge.put("Esploratore Esperto");
+        }
+        if (punteggio >= 300) {
+            badge.put("Cacciatore di Tesori");
+        }
+
+        ricompense.put("badge", badge);
+        ricompense.put("esperienza", punteggio / 10);
+
+        // Ricompense speciali casuali
+        if (random.nextInt(100) < 20) { // 20% possibilità
+            ricompense.put("ricompensaSpeciale", "Accesso VIP alla prossima mostra temporanea");
+        }
+
+        return ricompense;
+    }
+
+    private static JSONObject generaQuestDettagliata(String questId) {
+        JSONObject quest = new JSONObject();
+        quest.put("idQuest", questId);
+        quest.put("titoloQuest", "Quest Generata: " + questId);
+        quest.put("descrizioneQuest", "Una quest generata automaticamente per l'esplorazione del museo");
+        quest.put("nomeOpera", "Opera Misteriosa");
+        quest.put("autoreOpera", "Artista da Scoprire");
+        quest.put("categoria", "generale");
+        quest.put("difficolta", "media");
+        quest.put("puntiRicompensa", 150);
+        quest.put("tempoStimato", 20);
+        quest.put("indizi", new JSONArray().put("Cerca nell'ala principale del museo"));
+
+        return quest;
+    }
+
+    // === METODI DI SUPPORTO PER LA GENERAZIONE DATI ===
+
+    private static int calcolaPuntiRicompensa(String difficolta) {
+        return switch (difficolta) {
+            case "facile" -> 100;
+            case "media" -> 200;
+            case "difficile" -> 300;
+            default -> 150;
+        };
+    }
+
+    private static int calcolaTempoStimato(String difficolta) {
+        return switch (difficolta) {
+            case "facile" -> 10; // 10 minuti
+            case "media" -> 20;  // 20 minuti
+            case "difficile" -> 35; // 35 minuti
+            default -> 20;
+        };
+    }
+
+    private static JSONArray generaIndizi(String nomeOpera, String categoria) {
+        JSONArray indizi = new JSONArray();
+
+        // Indizi generici
+        indizi.put("Cerca nell'area dedicata a: " + categoria);
+        indizi.put("L'opera è esposta in una cornice/teca ben visibile");
+
+        // Indizi specifici per nome opera
+        if (nomeOpera.toLowerCase().contains("gioconda")) {
+            indizi.put("Cerca il sorriso più enigmatico della storia dell'arte");
+            indizi.put("Si trova nella sezione Rinascimento Italiano");
+        } else if (nomeOpera.toLowerCase().contains("venere")) {
+            indizi.put("Cerca una figura femminile che emerge dal mare");
+        } else if (nomeOpera.toLowerCase().contains("ultima cena")) {
+            indizi.put("Una tavola con 13 persone sedute");
+        }
+
+        return indizi;
+    }
+
+    private static String generaDimensioniOpera() {
+        String[] dimensioni = {
+                "77 x 53 cm", "120 x 80 cm", "200 x 150 cm",
+                "50 x 40 cm", "180 x 120 cm", "90 x 70 cm"
+        };
+        return dimensioni[random.nextInt(dimensioni.length)];
+    }
+
+    private static String generaAnnoOpera(String categoria) {
+        return switch (categoria) {
+            case "rinascimento" -> String.valueOf(1450 + random.nextInt(100));
+            case "impressionismo" -> String.valueOf(1860 + random.nextInt(40));
+            case "paleontologia" -> "65 milioni di anni fa";
+            case "archeologia" -> String.valueOf(500 + random.nextInt(1500)) + " a.C.";
+            default -> String.valueOf(1800 + random.nextInt(200));
+        };
+    }
+
+    private static String generaTecnicaOpera(String categoria) {
+        Map<String, String[]> tecniche = new HashMap<>();
+        tecniche.put("arte", new String[]{"Olio su tela", "Tempera su tavola", "Affresco", "Acquerello"});
+        tecniche.put("scienza", new String[]{"Fossile", "Modello in scala", "Reperto originale", "Ricostruzione"});
+        tecniche.put("storia", new String[]{"Manufatto originale", "Replica fedele", "Restauro moderno"});
+
+        String[] opzioni = tecniche.getOrDefault(categoria, new String[]{"Tecnica mista", "Materiale originale"});
+        return opzioni[random.nextInt(opzioni.length)];
+    }
+
+    private static String generaProvenienzaOpera() {
+        String[] provenienze = {
+                "Collezione privata donata al museo",
+                "Acquisizione del museo nel 1985",
+                "Prestito da museo internazionale",
+                "Ritrovamento archeologico locale",
+                "Donazione della famiglia dell'artista"
+        };
+        return provenienze[random.nextInt(provenienze.length)];
+    }
+
+    private static JSONArray generaSuggerimenti(String categoria) {
+        JSONArray suggerimenti = new JSONArray();
+
+        switch (categoria) {
+            case "arte", "rinascimento", "impressionismo" -> {
+                suggerimenti.put("Osserva attentamente i colori e le pennellate");
+                suggerimenti.put("Leggi la targa informativa accanto all'opera");
+                suggerimenti.put("Nota lo stile artistico caratteristico del periodo");
+            }
+            case "scienza", "paleontologia" -> {
+                suggerimenti.put("Cerca nelle sale dedicate alle scienze naturali");
+                suggerimenti.put("Osserva le dimensioni e la struttura del reperto");
+                suggerimenti.put("Leggi le informazioni scientifiche fornite");
+            }
+            case "storia", "archeologia" -> {
+                suggerimenti.put("Visita la sezione storica del museo");
+                suggerimenti.put("Nota il contesto storico dell'oggetto");
+                suggerimenti.put("Osserva i dettagli decorativi e simbolici");
+            }
+            default -> {
+                suggerimenti.put("Esplora le diverse sezioni del museo");
+                suggerimenti.put("Chiedi informazioni al personale se necessario");
+                suggerimenti.put("Usa la mappa del museo per orientarti");
+            }
+        }
+
+        return suggerimenti;
+    }
+}

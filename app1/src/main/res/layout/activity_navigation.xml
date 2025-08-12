@@ -163,6 +163,20 @@
                 android:drawablePadding="8dp"
                 android:gravity="center" />
 
+        <!-- Nuovo pulsante aggiunto -->
+        <Button
+                android:id="@+id/museumQuestButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Quest del museo"
+                android:textSize="14sp"
+                android:background="@drawable/button_secondary_background"
+                android:textColor="@android:color/holo_blue_dark"
+                android:drawableLeft="@android:drawable/ic_menu_help"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:layout_marginTop="12dp" />
+
     </LinearLayout>
 
     <!-- Spacer per spingere il contenuto verso l'alto -->
