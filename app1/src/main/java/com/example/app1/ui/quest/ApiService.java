@@ -46,14 +46,14 @@ public class ApiService {
     /**
      * Avvia una quest specifica
      */
-    public String iniziaQuest(String userId, String questId) throws Exception {
+    public String iniziaQuest(String userId, String questId, String museoId) throws Exception {
         String urlString = BASE_URL_QUEST + "/inizia";
         Log.d(TAG, "POST Inizio Quest: " + urlString);
 
         JSONObject requestBody = new JSONObject();
         requestBody.put("userId", userId);
         requestBody.put("questId", questId);
-
+        requestBody.put("museoId", museoId);
         return executePostRequest(urlString, requestBody.toString());
     }
 

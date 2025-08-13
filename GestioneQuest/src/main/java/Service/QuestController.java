@@ -159,13 +159,14 @@ public class QuestController {
 
             String userId = request.getString("userId");
             String questId = request.getString("questId");
+            String museoId = request.getString("museoId");
 
             System.out.println("UserId: " + userId);
             System.out.println("QuestId: " + questId);
+            System.out.println("MuseoId: " + museoId);
 
             // Simulazione avvio quest
-            JSONObject risultato = QuestSimulationService.iniziaQuest(userId, questId);
-
+            JSONObject risultato = QuestSimulationService.iniziaQuest(userId, questId, museoId);
             if (!risultato.getBoolean("success")) {
                 System.out.println("❌ Impossibile iniziare la quest");
                 return Response.status(Response.Status.BAD_REQUEST)

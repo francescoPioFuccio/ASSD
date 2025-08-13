@@ -82,10 +82,13 @@ public class QuestActivity extends AppCompatActivity implements QuestAdapter.OnQ
 
     private void getDataFromIntent() {
         Intent intent = getIntent();
-        userId = intent.getStringExtra("user_id");
-        museoId = intent.getStringExtra("museo_id");
-        museoNome = intent.getStringExtra("museo_nome");
 
+        userId = getSharedPreferences("user", MODE_PRIVATE).getString("userId", "");
+        museoId = getSharedPreferences("museo", MODE_PRIVATE).getString("museo", "");
+        museoNome = getSharedPreferences("museo", MODE_PRIVATE).getString("museo_nome", "");
+        Log.d(TAG, "QuestActivity: " + userId);
+        Log.d(TAG, "QuestActivity: " + museoId);
+        Log.d(TAG, "QuestActivity: " + museoNome);
         // Valori di default per testing se mancanti
         if (userId == null) userId = "user_test_123";
         if (museoId == null) museoId = "MUS_ARTE";

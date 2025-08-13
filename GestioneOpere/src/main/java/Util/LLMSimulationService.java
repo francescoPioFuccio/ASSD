@@ -338,7 +338,7 @@ public class LLMSimulationService {
      * Simula l'analisi di un'opera basata sulla descrizione della quest
      */
     private static boolean simulaAnalisiOpera(String descrizioneQuest, String fileName) {
-        if (descrizioneQuest == null || descrizioneQuest.trim().isEmpty()) {
+        /*if (descrizioneQuest == null || descrizioneQuest.trim().isEmpty()) {
             return random.nextBoolean(); // 50% possibilità se non c'è descrizione
         }
 
@@ -377,10 +377,10 @@ public class LLMSimulationService {
         // Quest generiche - probabilità media
         if (desc.contains("mistero") || desc.contains("nascosta") || desc.contains("tesoro")) {
             return random.nextInt(100) < 60; // 60% successo
-        }
+        }*/
 
         // Default - probabilità moderata
-        return random.nextInt(100) < 55; // 55% successo
+        return random.nextInt(100) < 80; // 55% successo
     }
 
     /**

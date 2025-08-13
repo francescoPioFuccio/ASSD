@@ -52,7 +52,7 @@ public class NavigationActivity extends AppCompatActivity {
     // Stato della navigazione
     private boolean isNavigating = false;
     private boolean hasOpenedMaps = false;
-    private boolean hasArrived = false; // Nuovo flag per evitare chiamate multiple
+    private boolean hasArrived = false; // Flag per evitare chiamate multiple
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,14 +92,12 @@ public class NavigationActivity extends AppCompatActivity {
     private void initializeLocationServices() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Configura la richiesta di localizzazione
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, LOCATION_UPDATE_INTERVAL)
                 .setWaitForAccurateLocation(false)
                 .setMinUpdateIntervalMillis(LOCATION_FASTEST_INTERVAL)
                 .setMaxUpdateAgeMillis(10000)
                 .build();
 
-        // Callback per gli aggiornamenti di posizione
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
@@ -114,7 +112,6 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private void setupUI() {
-        // Imposta le informazioni del museo
         binding.museoNomeTextView.setText(museoNome);
         if (museoIndirizzo != null && !museoIndirizzo.isEmpty()) {
             binding.museoIndirizzoTextView.setText(museoIndirizzo);
@@ -127,18 +124,18 @@ public class NavigationActivity extends AppCompatActivity {
         binding.stopNavigationButton.setOnClickListener(v -> stopNavigationAndGoHome());
         binding.backButton.setOnClickListener(v -> stopNavigationAndGoHome());
         binding.museumQuestButton.setOnClickListener(v -> {
-            // Avvia QuestActivity quando il pulsante viene premuto
             Intent intent = new Intent(NavigationActivity.this, QuestActivity.class);
             startActivity(intent);
         });
-        // Inizialmente disabilita il bottone per aprire Maps
+
+        // MODIFICA: Il bottone per aprire Maps è disabilitato di default.
+        // Verrà abilitato solo dopo aver ottenuto la posizione iniziale dell'utente.
         binding.openMapsButton.setEnabled(false);
     }
 
     private void checkLocationPermissionAndStartNavigation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION},
@@ -149,8 +146,7 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private void startLocationUpdates() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
@@ -160,43 +156,55 @@ public class NavigationActivity extends AppCompatActivity {
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
         Log.d("NavigationActivity", "Aggiornamenti di posizione avviati");
 
-        // Ottieni la posizione corrente per aprire subito Maps
+        // MODIFICA: Ottieni la posizione iniziale solo per ABILITARE il pulsante, non per aprire Mappe.
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
                         updateCurrentLocation(location);
-                        // Abilita il bottone per aprire Maps
-                        binding.openMapsButton.setEnabled(true);
-                        // Apri automaticamente Google Maps solo se non è già stato aperto
-                        if (!hasOpenedMaps) {
-                            openGoogleMaps();
-                        }
+
+                        // NUOVO: Abilita il pulsante e aggiorna l'UI per informare l'utente.
+                        runOnUiThread(() -> {
+                            binding.openMapsButton.setEnabled(true);
+                            binding.statusTextView.setText("Posizione trovata! Premi 'Apri in Mappe' per iniziare.");
+                        });
+
+                        // RIMOSSO: La chiamata automatica a openGoogleMaps() è stata rimossa da qui.
+                        // if (!hasOpenedMaps) {
+                        //     openGoogleMaps();
+                        // }
                     }
+                })
+                .addOnFailureListener(this, e -> {
+                    // NUOVO: Gestione del caso in cui non si riesca a ottenere la posizione iniziale.
+                    Log.e("NavigationActivity", "Errore nel recuperare la posizione iniziale", e);
+                    runOnUiThread(() -> {
+                        binding.statusTextView.setText("Impossibile ottenere la posizione. Controlla il GPS.");
+                        Toast.makeText(this, "Impossibile ottenere la posizione iniziale.", Toast.LENGTH_LONG).show();
+                    });
                 });
     }
 
     private void updateCurrentLocation(Location location) {
-        if (hasArrived) return; // Non aggiornare se siamo già arrivati
+        if (hasArrived) return;
 
         double currentLat = location.getLatitude();
         double currentLng = location.getLongitude();
         currentLatitude = currentLat;
         currentLongitude = currentLng;
 
-        // Calcola la distanza dalla destinazione
         float distance = calculateDistance(currentLat, currentLng, museoLatitudine, museoLongitudine);
 
-        // Aggiorna l'UI con la posizione corrente e distanza
         runOnUiThread(() -> {
-            binding.currentLocationTextView.setText(
-                    String.format(Locale.getDefault(), "Posizione: %.6f, %.6f", currentLat, currentLng));
-            binding.distanceTextView.setText(
-                    String.format(Locale.getDefault(), "Distanza: %.0f metri", distance));
+            binding.currentLocationTextView.setText(String.format(Locale.getDefault(), "Posizione: %.6f, %.6f", currentLat, currentLng));
+            binding.distanceTextView.setText(String.format(Locale.getDefault(), "Distanza: %.0f metri", distance));
 
-            if (distance > ARRIVAL_THRESHOLD_METERS) {
-                binding.statusTextView.setText("In viaggio verso " + museoNome);
-            } else {
-                binding.statusTextView.setText("Stai arrivando a destinazione!");
+            // Aggiorna lo stato solo se l'utente non ha ancora aperto le mappe
+            if (!hasOpenedMaps) {
+                if (distance > ARRIVAL_THRESHOLD_METERS) {
+                    // Lo stato viene già impostato in startLocationUpdates, non serve cambiarlo qui.
+                } else {
+                    binding.statusTextView.setText("Sei già molto vicino! Premi 'Apri in Mappe' se necessario.");
+                }
             }
         });
 
@@ -204,7 +212,7 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private void checkArrival(Location location) {
-        if (hasArrived) return; // Evita chiamate multiple
+        if (hasArrived) return;
 
         float distance = calculateDistance(
                 location.getLatitude(),
@@ -213,12 +221,11 @@ public class NavigationActivity extends AppCompatActivity {
                 museoLongitudine
         );
 
-        // Log per debug
         Log.d("NavigationActivity", "Distanza dal museo: " + distance + " metri (soglia: " + ARRIVAL_THRESHOLD_METERS + ")");
 
         if (distance <= ARRIVAL_THRESHOLD_METERS) {
             Log.d("NavigationActivity", "Utente arrivato a destinazione!");
-            hasArrived = true; // Imposta il flag per evitare chiamate multiple
+            hasArrived = true;
             onArrivalAtDestination();
         }
     }
@@ -236,69 +243,42 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private void openGoogleMaps() {
-        if (hasOpenedMaps) {
-            Toast.makeText(this, "Google Maps già aperto", Toast.LENGTH_SHORT).show();
+        if (currentLatitude == null || currentLongitude == null) {
+            Toast.makeText(this, "Posizione corrente non ancora disponibile. Riprova tra un istante.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        if (hasOpenedMaps) {
+            // Se le mappe sono già state aperte, l'utente potrebbe volerle riaprire.
+            // Invece di un Toast, riapriamo l'app di navigazione.
+        }
+
         try {
-            String mapsUri;
+            // URI per le indicazioni da posizione corrente a destinazione
+            String mapsUri = String.format(Locale.US,
+                    "https://www.google.com/maps/dir/?api=1&origin=%f,%f&destination=%f,%f&travelmode=walking",
+                    currentLatitude, currentLongitude, museoLatitudine, museoLongitudine);
 
-            // Se abbiamo la posizione corrente, usa le indicazioni complete
-            if (currentLatitude != null && currentLongitude != null) {
-                // URI per le indicazioni da posizione corrente a destinazione
-                mapsUri = String.format(Locale.US,
-                        "https://www.google.com/maps/dir/?api=1&origin=%f,%f&destination=%f,%f&travelmode=walking",
-                        currentLatitude, currentLongitude, museoLatitudine, museoLongitudine);
-
-                Log.d("NavigationActivity", "Apertura Maps con indicazioni: " + mapsUri);
-            } else {
-                // Fallback: naviga solo verso la destinazione
-                mapsUri = String.format(Locale.US,
-                        "https://www.google.com/maps/dir/?api=1&destination=%f,%f&travelmode=walking",
-                        museoLatitudine, museoLongitudine);
-
-                Log.d("NavigationActivity", "Apertura Maps senza origine: " + mapsUri);
-            }
+            Log.d("NavigationActivity", "Apertura Mappe con indicazioni: " + mapsUri);
 
             Intent mapsIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(mapsUri));
             mapsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            // Prova prima con Google Maps specifico
             mapsIntent.setPackage("com.google.android.apps.maps");
+
             if (mapsIntent.resolveActivity(getPackageManager()) != null) {
                 startActivity(mapsIntent);
                 hasOpenedMaps = true;
                 updateUIAfterMapsOpen();
-                Log.d("NavigationActivity", "Google Maps aperto con successo");
-                return;
-            }
-
-            // Fallback: qualsiasi app di mappe
-            mapsIntent.setPackage(null);
-            if (mapsIntent.resolveActivity(getPackageManager()) != null) {
-                startActivity(mapsIntent);
-                hasOpenedMaps = true;
-                updateUIAfterMapsOpen();
-                Log.d("NavigationActivity", "App di mappe alternativa aperta");
-                return;
-            }
-
-            // Ultimo fallback: URI geo
-            String geoUri = String.format(Locale.US, "geo:%f,%f?q=%f,%f(%s)",
-                    museoLatitudine, museoLongitudine, museoLatitudine, museoLongitudine,
-                    Uri.encode(museoNome));
-
-            Intent geoIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(geoUri));
-            geoIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            if (geoIntent.resolveActivity(getPackageManager()) != null) {
-                startActivity(geoIntent);
-                hasOpenedMaps = true;
-                updateUIAfterMapsOpen();
-                Log.d("NavigationActivity", "Apertura con URI geo");
             } else {
-                Toast.makeText(this, "Nessuna app di mappe disponibile", Toast.LENGTH_LONG).show();
+                // Fallback: qualsiasi app di mappe
+                mapsIntent.setPackage(null);
+                if (mapsIntent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(mapsIntent);
+                    hasOpenedMaps = true;
+                    updateUIAfterMapsOpen();
+                } else {
+                    Toast.makeText(this, "Nessuna app di mappe disponibile", Toast.LENGTH_LONG).show();
+                }
             }
 
         } catch (Exception e) {
@@ -307,6 +287,10 @@ public class NavigationActivity extends AppCompatActivity {
         }
     }
 
+    // ... il resto del codice rimane invariato ...
+    // onArrivalAtDestination(), stopNavigationAndGoHome(), etc. sono corretti.
+    // Li ometto per brevità ma devono rimanere nel tuo file.
+
     private void updateUIAfterMapsOpen() {
         runOnUiThread(() -> {
             binding.statusTextView.setText("Navigazione avviata - Seguendo il percorso...");
@@ -314,85 +298,18 @@ public class NavigationActivity extends AppCompatActivity {
         });
     }
 
-    // NUOVA FUNZIONE: Tenta di chiudere Google Maps e riportare l'app in primo piano
-    private void handleMapsAndBringAppToFront() {
-        try {
-            // Metodo 1: Tenta di minimizzare/uscire da Maps usando l'Intent HOME
-            Intent homeIntent = new Intent(Intent.ACTION_MAIN);
-            homeIntent.addCategory(Intent.CATEGORY_HOME);
-            homeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(homeIntent);
-
-            // Piccola pausa per permettere al sistema di processare
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                // Metodo 2: Riporta immediatamente la nostra app in primo piano
-                bringOurAppToForeground();
-            }, 500);
-
-            Log.d("NavigationActivity", "Tentativo di chiusura Maps e ritorno app completato");
-
-        } catch (Exception e) {
-            Log.w("NavigationActivity", "Errore nel gestire Maps: " + e.getMessage());
-            // Fallback: riporta almeno la nostra app in primo piano
-            bringOurAppToForeground();
-        }
-    }
-
-    // NUOVA FUNZIONE: Forza il ritorno della nostra app in primo piano
-    private void bringOurAppToForeground() {
-        try {
-            // Metodo più diretto per riportare la nostra app in primo piano
-            Intent intent = new Intent(this, NavigationActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT |
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP |
-                    Intent.FLAG_ACTIVITY_NEW_TASK |
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-
-            Log.d("NavigationActivity", "App riportata in primo piano");
-
-        } catch (Exception e) {
-            Log.w("NavigationActivity", "Errore nel riportare l'app in primo piano: " + e.getMessage());
-        }
-    }
-
-    // NUOVA FUNZIONE: Notifica persistente per avvisare dell'arrivo
-    private void showArrivalNotification() {
-        try {
-            // Crea una notifica che avvisa dell'arrivo
-            // Nota: Questa funzione richiede l'implementazione del NotificationManager
-            // Per ora, usiamo una combinazione di Toast e vibrazione
-
-            Toast.makeText(this, "🎉 ARRIVO! Tornando all'app principale...", Toast.LENGTH_LONG).show();
-
-            // Vibrazione per attirare l'attenzione (se il permesso è disponibile)
-            try {
-                android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
-                if (vibrator != null && vibrator.hasVibrator()) {
-                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                        vibrator.vibrate(android.os.VibrationEffect.createOneShot(1000, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
-                    } else {
-                        vibrator.vibrate(1000);
-                    }
-                }
-            } catch (Exception e) {
-                Log.w("NavigationActivity", "Impossibile vibrare: " + e.getMessage());
-            }
-
-        } catch (Exception e) {
-            Log.w("NavigationActivity", "Errore nella notifica di arrivo: " + e.getMessage());
-        }
-    }
-
     private void onArrivalAtDestination() {
-        if (!isNavigating || hasArrived) return; // Evita chiamate multiple
+        if (!isNavigating) return; // Evita chiamate multiple se la navigazione è già stata fermata
 
         Log.d("NavigationActivity", "Gestendo arrivo a destinazione");
 
-        // NUOVO: Gestisci Maps e riporta l'app in primo piano
-        handleMapsAndBringAppToFront();
+        // Ferma gli aggiornamenti di posizione
+        stopLocationUpdates();
 
-        // Mostra notifica di arrivo con vibrazione
+        // Riporta l'app in primo piano
+        bringOurAppToForeground();
+
+        // Mostra notifica di arrivo
         showArrivalNotification();
 
         runOnUiThread(() -> {
@@ -400,23 +317,35 @@ public class NavigationActivity extends AppCompatActivity {
             Toast.makeText(this, "Congratulazioni! Sei arrivato al " + museoNome + "!", Toast.LENGTH_LONG).show();
         });
 
-        // Ferma gli aggiornamenti di posizione
-        stopLocationUpdates();
+        new Handler(Looper.getMainLooper()).postDelayed(this::goToHomeActivity, 2500); // Ritardo per permettere all'utente di leggere il messaggio
+    }
 
-        // Aumentiamo il tempo di attesa per dare tempo al sistema di gestire il cambio app
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (!isFinishing()) { // Controlla se l'activity è ancora valida
-                // Riporta nuovamente l'app in primo piano prima di andare alla Home
-                bringOurAppToForeground();
+    private void bringOurAppToForeground() {
+        try {
+            Intent intent = new Intent(this, NavigationActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            Log.d("NavigationActivity", "App riportata in primo piano");
+        } catch (Exception e) {
+            Log.w("NavigationActivity", "Errore nel riportare l'app in primo piano: " + e.getMessage());
+        }
+    }
 
-                // Piccola pausa aggiuntiva prima di andare alla HomeActivity
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (!isFinishing()) {
-                        goToHomeActivity();
-                    }
-                }, 1000);
+    private void showArrivalNotification() {
+        try {
+            Toast.makeText(this, "🎉 ARRIVO! Tornando all'app...", Toast.LENGTH_LONG).show();
+            // Vibrazione (richiede permesso VIBRATE nel manifest)
+            android.os.Vibrator v = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
+            if (v != null && v.hasVibrator()) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    v.vibrate(android.os.VibrationEffect.createOneShot(500, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    v.vibrate(500);
+                }
             }
-        }, 2000);
+        } catch (Exception e) {
+            Log.w("NavigationActivity", "Errore nella notifica di arrivo: " + e.getMessage());
+        }
     }
 
     private void stopLocationUpdates() {
@@ -429,13 +358,7 @@ public class NavigationActivity extends AppCompatActivity {
 
     private void stopNavigationAndGoHome() {
         stopLocationUpdates();
-        hasArrived = true; // Impedisce ulteriori aggiornamenti
-
-        // NUOVO: Gestisci Maps anche quando si ferma manualmente la navigazione
-        if (hasOpenedMaps) {
-            handleMapsAndBringAppToFront();
-        }
-
+        hasArrived = true;
         Toast.makeText(this, "Navigazione fermata", Toast.LENGTH_SHORT).show();
         goToHomeActivity();
     }
@@ -451,7 +374,6 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d("NavigationActivity", "Permessi di localizzazione concessi");
@@ -467,7 +389,6 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Continua il monitoraggio anche quando l'app va in background
         Log.d("NavigationActivity", "App in background - continuando a monitorare la posizione");
     }
 
@@ -475,8 +396,6 @@ public class NavigationActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         Log.d("NavigationActivity", "App tornata in foreground");
-
-        // Aggiorna l'UI se Maps è stato aperto
         if (hasOpenedMaps && !hasArrived) {
             binding.statusTextView.setText("Navigazione attiva - Torna qui quando arrivi");
         }
@@ -491,12 +410,10 @@ public class NavigationActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        // Minimizza l'app invece di chiuderla durante la navigazione
         if (isNavigating && !hasArrived) {
             Log.d("NavigationActivity", "Back pressed - minimizzando l'app");
             moveTaskToBack(true);
         } else {
-            // Se non stiamo navigando o siamo arrivati, comportamento normale
             super.onBackPressed();
         }
     }

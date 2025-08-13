@@ -109,7 +109,7 @@ public class QuestViewModel extends ViewModel {
 
         executor.execute(() -> {
             try {
-                String response = apiService.iniziaQuest(currentUserId, questId);
+                String response = apiService.iniziaQuest(currentUserId, questId, currentMuseoId);
                 Log.d(TAG, "Response inizio quest: " + response);
 
                 JSONObject jsonResponse = new JSONObject(response);
