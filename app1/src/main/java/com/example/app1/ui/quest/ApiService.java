@@ -7,14 +7,16 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.*;
 import org.json.JSONObject;
 
 public class ApiService {
 
     private static final String TAG = "ApiService";
     private static final String BASE_URL_QUEST = "http://10.0.2.2:8085/gestionequest/api/quest";
-    private static final String BASE_URL_OPERA = "http://10.0.2.2:8085/gestioneopere/api";
+    private static final String BASE_URL_OPERA = "http://10.0.2.2:8085/gestioneopere/api/opera";
     private static final int TIMEOUT_MS = 15000;
 
     /**
@@ -150,81 +152,92 @@ public class ApiService {
     /**
      * Esegue una richiesta multipart per upload foto
      */
-    private String executeMultipartRequest(String urlString, File fotoFile,
-                                           String userId, String descrizioneQuest) throws Exception {
+    private String executeMultipartRequest(String urlString, File fotoFile,String userId, String descrizioneQuest) throws Exception {
 
-        String boundary = "----FormBoundary" + System.currentTimeMillis();
-        String LINE_FEED = "\r\n";
-
-        URL url = new URL(urlString);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        // 1. Crea un client OkHttp
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .readTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .writeTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .build();
 
         try {
-            connection.setRequestMethod("POST");
-            connection.setConnectTimeout(TIMEOUT_MS);
-            connection.setReadTimeout(TIMEOUT_MS);
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-            connection.setRequestProperty("Accept", "application/json");
+            // === DEBUG ESTENSIONE E MEDIATYPE ===
+            String fileName = fotoFile.getName();
+            String extension = "";
+            int i = fileName.lastIndexOf('.');
+            if (i > 0) {
+                extension = fileName.substring(i + 1).toLowerCase();
+            }
 
-            OutputStream outputStream = connection.getOutputStream();
-            PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8), true);
+            MediaType mediaType;
+            switch (extension) {
+                case "png":
+                    mediaType = MediaType.parse("image/png");
+                    break;
+                case "jpg":
+                case "jpeg":
+                    mediaType = MediaType.parse("image/jpeg");
+                    break;
+                default:
+                    // Un tipo generico se l'estensione non è riconosciuta
+                    mediaType = MediaType.parse("application/octet-stream");
+                    break;
+            }
+            Log.d(TAG, "DEBUG: Nome file: " + fileName + ", Estensione rilevata: '" + extension + "', MediaType impostato: '" + mediaType + "'");
+            // === FINE DEBUG ===
 
-            // Aggiungi campo userId
-            writer.append("--").append(boundary).append(LINE_FEED);
-            writer.append("Content-Disposition: form-data; name=\"userId\"").append(LINE_FEED);
-            writer.append("Content-Type: text/plain; charset=UTF-8").append(LINE_FEED);
-            writer.append(LINE_FEED);
-            writer.append(userId).append(LINE_FEED);
-            writer.flush();
 
-            // Aggiungi campo descrizione
-            writer.append("--").append(boundary).append(LINE_FEED);
-            writer.append("Content-Disposition: form-data; name=\"descrizione\"").append(LINE_FEED);
-            writer.append("Content-Type: text/plain; charset=UTF-8").append(LINE_FEED);
-            writer.append(LINE_FEED);
-            writer.append(descrizioneQuest != null ? descrizioneQuest : "").append(LINE_FEED);
-            writer.flush();
+            // 3. Costruisci il corpo della richiesta multipart
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("userId", userId)
+                    .addFormDataPart("descrizione", descrizioneQuest != null ? descrizioneQuest : "")
+                    .addFormDataPart("file", fileName, // Usa il nome file che abbiamo già
+                            RequestBody.create(fotoFile, mediaType))
+                    .build();
 
-            // Aggiungi file foto
-            writer.append("--").append(boundary).append(LINE_FEED);
-            writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"")
-                    .append(fotoFile.getName()).append("\"").append(LINE_FEED);
-            writer.append("Content-Type: image/jpeg").append(LINE_FEED);
-            writer.append("Content-Transfer-Encoding: binary").append(LINE_FEED);
-            writer.append(LINE_FEED);
-            writer.flush();
+            // 4. Costruisci la richiesta POST
+            Request request = new Request.Builder()
+                    .url(urlString)
+                    .post(requestBody)
+                    .build();
 
-            // Copia il file
-            try (FileInputStream inputStream = new FileInputStream(fotoFile)) {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
+            Log.d(TAG, "Invio richiesta multipart a: " + urlString);
+            Log.d(TAG, "Con userId: " + userId);
+
+            // === DEBUG HEADERS ===
+            Headers headers = request.headers();
+            Log.d(TAG, "===== INIZIO HEADERS RICHIESTA OKHTTP (DEBUG) =====");
+            for (int j = 0; j < headers.size(); j++) {
+                Log.d(TAG, "Header: " + headers.name(j) + ": " + headers.value(j));
+            }
+            Log.d(TAG, "===== FINE HEADERS RICHIESTA OKHTTP (DEBUG) =====");
+            // === FINE DEBUG ===
+
+
+            // 5. Esegui la chiamata e ottieni la risposta
+            try (Response response = client.newCall(request).execute()) {
+
+                int responseCode = response.code();
+                String responseBodyString = response.body() != null ? response.body().string() : "";
+
+                Log.d(TAG, "Upload Response Code: " + responseCode);
+                Log.d(TAG, "Upload Response Body: " + responseBodyString);
+
+                if (!response.isSuccessful()) {
+                    Log.e(TAG, "Upload Error Response: " + responseBodyString);
+                    throw new IOException("HTTP " + responseCode + ": " + responseBodyString);
                 }
-                outputStream.flush();
+
+                return responseBodyString;
             }
 
-            writer.append(LINE_FEED);
-            writer.append("--").append(boundary).append("--").append(LINE_FEED);
-            writer.close();
-
-            int responseCode = connection.getResponseCode();
-            Log.d(TAG, "Upload Response Code: " + responseCode);
-
-            if (responseCode >= 200 && responseCode < 300) {
-                return readResponse(connection.getInputStream());
-            } else {
-                String errorResponse = readResponse(connection.getErrorStream());
-                Log.e(TAG, "Upload Error Response: " + errorResponse);
-                throw new Exception("HTTP " + responseCode + ": " + errorResponse);
-            }
-
-        } finally {
-            connection.disconnect();
+        } catch (Exception e) {
+            Log.e(TAG, "Errore fatale durante l'invio della richiesta OkHttp", e);
+            throw e;
         }
     }
-
     /**
      * Legge la risposta da un InputStream
      */

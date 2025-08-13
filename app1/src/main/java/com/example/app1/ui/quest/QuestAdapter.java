@@ -16,7 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.app1.R;
-import com.example.app1.ui.quest.Quest;
+import com.example.app1.ui.quest.*;
 
 import java.util.ArrayList;
 import java.util.List;
