@@ -142,6 +142,20 @@ public class LoginActivity extends AppCompatActivity {
             android.util.Log.d("LoginActivity", "Preferenze sincronizzate: " + model.getPreferenzeSync());
         }
 
+        // Salva l'userId anche nelle SharedPreferences specifiche lette da QuestActivity
+        if (userId != null && !userId.isEmpty()) {
+            getSharedPreferences("user", MODE_PRIVATE)
+                    .edit()
+                    .putString("userId", userId)
+                    .apply();
+
+            // Mantieni anche la copia già usata altrove
+            getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    .edit()
+                    .putString("userid", userId)
+                    .apply();
+        }
+
         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
         intent.putExtra("username", displayName);
         intent.putExtra("userid", userId);

@@ -80,6 +80,22 @@ public class NavigationActivity extends AppCompatActivity {
         museoLongitudine = intent.getDoubleExtra("museo_longitudine", 0.0);
         museoIndirizzo = intent.getStringExtra("museo_indirizzo");
 
+        // Salva anche l'id/nome museo se disponibili nell'intent o già in SharedPreferences
+        String museoIdFromIntent = intent.getStringExtra("museo_id");
+        if (museoIdFromIntent != null && !museoIdFromIntent.isEmpty()) {
+            getSharedPreferences("museo", MODE_PRIVATE)
+                    .edit()
+                    .putString("museo", museoIdFromIntent)
+                    .putString("museo_nome", museoNome)
+                    .apply();
+        } else if (museoNome != null && !museoNome.isEmpty()) {
+            // Almeno sincronizza il nome se manca l'id
+            getSharedPreferences("museo", MODE_PRIVATE)
+                    .edit()
+                    .putString("museo_nome", museoNome)
+                    .apply();
+        }
+
         Log.d("NavigationActivity", "Destinazione: " + museoNome +
                 " (" + museoLatitudine + ", " + museoLongitudine + ")");
 

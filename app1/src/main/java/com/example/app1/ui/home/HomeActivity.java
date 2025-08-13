@@ -76,6 +76,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     .edit()
                     .putString("userid", userId)
                     .apply();
+
+            // Salva anche con i nomi usati in QuestActivity
+            getSharedPreferences("user", MODE_PRIVATE)
+                    .edit()
+                    .putString("userId", userId)
+                    .apply();
         }
 
         // Listener del navigation drawer

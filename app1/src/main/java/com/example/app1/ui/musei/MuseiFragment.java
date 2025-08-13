@@ -240,6 +240,13 @@ public class MuseiFragment extends Fragment {
         }
     }
     private void startNavigation(String museoId, String museoNome, double latitudine, double longitudine, String indirizzo) {
+        // Persisti i dati del museo selezionato per uso successivo (es. QuestActivity)
+        requireContext().getSharedPreferences("museo", Context.MODE_PRIVATE)
+                .edit()
+                .putString("museo", museoId)
+                .putString("museo_nome", museoNome)
+                .apply();
+
         Intent intent = new Intent(requireContext(), NavigationActivity.class);
         intent.putExtra("museo_id", museoId);
         intent.putExtra("museo_nome", museoNome);
