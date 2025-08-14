@@ -25,9 +25,7 @@ dependencies {
     implementation("org.json:json:20240303")
 
 
-    // Jakarta EE API (equivalente di "provided" in Gradle)
-    // Significa che questa dipendenza serve per compilare, ma non verrà inclusa nel file finale
-    // perché si presume che il server (WildFly) la fornirà.
+    // Jakarta EE API fornite dal container (RESTEasy su WildFly)
     compileOnly("jakarta.platform:jakarta.jakartaee-api:10.0.0")
 
     // --- NUOVE DIPENDENZE AGGIUNTE ---

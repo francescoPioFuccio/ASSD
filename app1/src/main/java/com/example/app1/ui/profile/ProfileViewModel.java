@@ -48,7 +48,7 @@ public class ProfileViewModel extends AndroidViewModel {
         Log.d("ProfileViewModel", "Fetching profile for user ID: " + userId);
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8085/usermodule3/api/users/" + userId;
+        String url = "http://10.0.2.2:8080/usermodule3/api/users/" + userId;
         Log.d("ProfileViewModel", "Request URL: " + url);
 
         Request request = new Request.Builder()
@@ -83,7 +83,7 @@ public class ProfileViewModel extends AndroidViewModel {
         Log.d("ProfileViewModel", "Updating profile for user ID: " + userId);
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8085/usermodule3/api/users/" + userId;
+        String url = "http://10.0.2.2:8080/usermodule3/api/users/" + userId;
         Log.d("ProfileViewModel", "Update URL: " + url);
 
         try {

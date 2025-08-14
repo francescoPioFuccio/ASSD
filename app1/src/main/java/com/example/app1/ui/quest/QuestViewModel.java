@@ -161,6 +161,8 @@ public class QuestViewModel extends ViewModel {
 
                 if (questApprovata && "APPROVATA".equals(status)) {
                     // Quest completata con successo
+                    Log.d(TAG, "Quest approvata: " + quest.getIdQuest());
+
                     completaQuest(quest, jsonResponse);
                     successMessage.postValue(message);
 
@@ -191,11 +193,32 @@ public class QuestViewModel extends ViewModel {
      * Completa una quest (chiamata interna dopo analisi positiva)
      */
     private void completaQuest(Quest quest, JSONObject analisiResponse) {
+        // === NUOVO BLOCCO DI DEBUG ===
+        if (analisiResponse == null) {
+            Log.e(TAG, "FATAL ERROR in completaQuest: l'oggetto analisiResponse è NULL. Impossibile procedere.");
+            // Puoi anche aggiornare l'UI per mostrare un errore specifico
+            // _errorMessage.postValue("Errore critico: la risposta dell'analisi è vuota.");
+            return; // Esci dal metodo per evitare il crash
+        }
+        Log.d(TAG, "Risposta analisi ricevuta in completaQuest: " + analisiResponse.toString());
+        // === FINE BLOCCO DI DEBUG ===
+
         try {
             // Estrai informazioni dall'analisi
             int punteggioBonus = analisiResponse.optInt("punteggioBonus", 0);
+            Log.d(TAG, "Punteggio bonus estratto: " + punteggioBonus); // Aggiungi log anche qui
+
+            // Verifica che currentUserId non sia nullo
+            if (currentUserId == null || currentUserId.isEmpty()) {
+                Log.e(TAG, "FATAL ERROR: currentUserId è nullo o vuoto prima di chiamare l'API.");
+                throw new IllegalStateException("ID utente non disponibile per completare la quest.");
+            }
+
+            Log.d(TAG, "Tentativo di aggiornare punti bonus per l'utente: " + currentUserId);
+            apiService.updetePuntiBonus(currentUserId, punteggioBonus);
 
             // Chiamata API per completare la quest
+            Log.d(TAG, "Tentativo di completare la quest API...");
             String response = apiService.completaQuest(
                     currentUserId,
                     quest.getIdQuest(),
@@ -211,7 +234,9 @@ public class QuestViewModel extends ViewModel {
             checkAllQuestsCompleted();
 
         } catch (Exception e) {
-            Log.e(TAG, "Errore completamento quest: " + e.getMessage(), e);
+            Log.e(TAG, "Errore durante l'esecuzione di completaQuest: " + e.getMessage(), e);
+            // Aggiorna l'UI con un messaggio di errore
+            // _errorMessage.postValue("Impossibile completare la quest: " + e.getMessage());
         }
     }
 

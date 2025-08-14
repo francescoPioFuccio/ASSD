@@ -17,7 +17,30 @@ public class ApiService {
     private static final String TAG = "ApiService";
     private static final String BASE_URL_QUEST = "http://10.0.2.2:8085/gestionequest/api/quest";
     private static final String BASE_URL_OPERA = "http://10.0.2.2:8085/gestioneopere/api/opera";
+    // User service (UserDataModule3) su porta 8080
+    private static final String BASE_URL_USER = "http://10.0.2.2:8080/usermodule3/api/users";
+
     private static final int TIMEOUT_MS = 15000;
+
+    /**
+     * === NUOVO METODO DI TEST ===
+     * Testa la connessione al server user
+     */
+    public String testUserConnection() throws Exception {
+        String urlString = BASE_URL_USER + "/test";
+        Log.d(TAG, "🔥 TEST USER CONNECTION: " + urlString);
+        return executeGetRequest(urlString);
+    }
+
+    /**
+     * === NUOVO METODO DI TEST PATH ===
+     * Testa il path specifico per punti
+     */
+    public String testPuntiPath(String userId) throws Exception {
+        String urlString = BASE_URL_USER + "/" + userId + "/test-punti";
+        Log.d(TAG, "🔥 TEST PUNTI PATH: " + urlString);
+        return executePutRequest(urlString);
+    }
 
     /**
      * Ottiene le quest disponibili per un museo
@@ -41,6 +64,72 @@ public class ApiService {
         Log.d(TAG, "GET Quest Disponibili: " + urlString);
 
         return executeGetRequest(urlString);
+    }
+
+    /**
+     * === METODO UPDATE PUNTI BONUS CON DEBUG MASSIMO ===
+     */
+    public void updetePuntiBonus(String userId, int puntiBonus) throws Exception {
+        Log.d(TAG, "🔥🔥🔥 ===== INIZIO DEBUG UPDATE PUNTI BONUS ===== 🔥🔥🔥");
+        Log.d(TAG, "🔥 USER ID ricevuto: '" + userId + "'");
+        Log.d(TAG, "🔥 USER ID è null? " + (userId == null));
+        Log.d(TAG, "🔥 USER ID è vuoto? " + (userId != null && userId.isEmpty()));
+        Log.d(TAG, "🔥 USER ID lunghezza: " + (userId != null ? userId.length() : "NULL"));
+        Log.d(TAG, "🔥 PUNTI BONUS da aggiungere: " + puntiBonus);
+        Log.d(TAG, "🔥 BASE_URL_USER: " + BASE_URL_USER);
+
+        // Costruzione URL con debug step-by-step
+        Log.d(TAG, "🔥 Step 1: Costruzione URL...");
+        String urlString = BASE_URL_USER + "/" + userId + "/aggiungi-punti" + "?punti=" + puntiBonus;
+        Log.d(TAG, "🔥 URL COMPLETO COSTRUITO: " + urlString);
+
+        // Verifica caratteri speciali nell'userId
+        if (userId != null) {
+            Log.d(TAG, "🔥 USER ID char-by-char:");
+            for (int i = 0; i < userId.length(); i++) {
+                char c = userId.charAt(i);
+                Log.d(TAG, "🔥   Char[" + i + "]: '" + c + "' (ASCII: " + (int)c + ")");
+            }
+        }
+
+        // Test di connettività prima della chiamata vera
+        Log.d(TAG, "🔥 Step 2: Test di connettività base...");
+        try {
+            String testResponse = testUserConnection();
+            Log.d(TAG, "🔥 Test connettività SUCCESSO: " + testResponse);
+        } catch (Exception e) {
+            Log.e(TAG, "❌🔥 Test connettività FALLITO: " + e.getMessage());
+            Log.e(TAG, "❌🔥 Impossibile continuare se il server non risponde!");
+            throw new Exception("Server non raggiungibile: " + e.getMessage(), e);
+        }
+
+        // Test path specifico
+        Log.d(TAG, "🔥 Step 3: Test path specifico...");
+        try {
+            String testPathResponse = testPuntiPath(userId);
+            Log.d(TAG, "🔥 Test path SUCCESSO: " + testPathResponse);
+        } catch (Exception e) {
+            Log.e(TAG, "❌🔥 Test path FALLITO: " + e.getMessage());
+            Log.e(TAG, "❌🔥 Il path o l'ID potrebbero essere il problema!");
+        }
+
+        Log.d(TAG, "🔥 Step 4: Esecuzione chiamata PUT finale...");
+
+        try {
+            String result = executePutRequest(urlString);
+            Log.d(TAG, "✅🔥 UPDATE PUNTI BONUS SUCCESSO!");
+            Log.d(TAG, "🔥 Risposta server: " + result);
+            Log.d(TAG, "✅🔥 ===== FINE DEBUG UPDATE PUNTI BONUS - SUCCESSO ===== 🔥🔥🔥");
+        } catch (Exception e) {
+            Log.e(TAG, "❌🔥 ===== ERRORE FATALE UPDATE PUNTI BONUS ===== 🔥🔥🔥");
+            Log.e(TAG, "❌🔥 Errore durante executePutRequest: " + e.getMessage());
+            Log.e(TAG, "❌🔥 Classe eccezione: " + e.getClass().getName());
+            if (e.getCause() != null) {
+                Log.e(TAG, "❌🔥 Causa principale: " + e.getCause().getMessage());
+            }
+            Log.e(TAG, "❌🔥 ===== FINE ERRORE FATALE ===== 🔥🔥🔥");
+            throw e;
+        }
     }
 
     /**
@@ -86,6 +175,7 @@ public class ApiService {
      * Esegue una richiesta GET
      */
     private String executeGetRequest(String urlString) throws Exception {
+        Log.d(TAG, "🔥 EXECUTE GET REQUEST: " + urlString);
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -97,13 +187,15 @@ public class ApiService {
             connection.setRequestProperty("Content-Type", "application/json");
 
             int responseCode = connection.getResponseCode();
-            Log.d(TAG, "Response Code: " + responseCode);
+            Log.d(TAG, "GET Response Code: " + responseCode);
 
             if (responseCode >= 200 && responseCode < 300) {
-                return readResponse(connection.getInputStream());
+                String response = readResponse(connection.getInputStream());
+                Log.d(TAG, "GET Response Success: " + response);
+                return response;
             } else {
                 String errorResponse = readResponse(connection.getErrorStream());
-                Log.e(TAG, "Error Response: " + errorResponse);
+                Log.e(TAG, "GET Error Response: " + errorResponse);
                 throw new Exception("HTTP " + responseCode + ": " + errorResponse);
             }
 
@@ -134,13 +226,13 @@ public class ApiService {
             }
 
             int responseCode = connection.getResponseCode();
-            Log.d(TAG, "Response Code: " + responseCode);
+            Log.d(TAG, "POST Response Code: " + responseCode);
 
             if (responseCode >= 200 && responseCode < 300) {
                 return readResponse(connection.getInputStream());
             } else {
                 String errorResponse = readResponse(connection.getErrorStream());
-                Log.e(TAG, "Error Response: " + errorResponse);
+                Log.e(TAG, "POST Error Response: " + errorResponse);
                 throw new Exception("HTTP " + responseCode + ": " + errorResponse);
             }
 
@@ -150,9 +242,100 @@ public class ApiService {
     }
 
     /**
+     * === METODO PUT CON DEBUG MASSIMO ===
+     * Esegue una richiesta PUT senza corpo (body).
+     * Utile per chiamate in cui i dati sono passati come parametri nell'URL.
+     *
+     * @param urlString L'URL completo della richiesta, inclusi i parametri.
+     * @return La risposta del server come stringa.
+     * @throws Exception In caso di errore di rete o risposta non riuscita dal server.
+     */
+    private String executePutRequest(String urlString) throws Exception {
+        Log.d(TAG, "🔥🔥🔥 ===== EXECUTE PUT REQUEST DEBUG ===== 🔥🔥🔥");
+        Log.d(TAG, "🔥 URL richiesta PUT: " + urlString);
+
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        Log.d(TAG, "🔥 URL object creato: " + url.toString());
+        Log.d(TAG, "🔥 Host: " + url.getHost());
+        Log.d(TAG, "🔥 Port: " + url.getPort());
+        Log.d(TAG, "🔥 Path: " + url.getPath());
+        Log.d(TAG, "🔥 Query: " + url.getQuery());
+
+        try {
+            Log.d(TAG, "🔥 Step 1: Configurazione connessione...");
+            // 1. Imposta il metodo su PUT
+            connection.setRequestMethod("PUT");
+            connection.setConnectTimeout(TIMEOUT_MS);
+            connection.setReadTimeout(TIMEOUT_MS);
+            connection.setRequestProperty("Accept", "application/json");
+
+            Log.d(TAG, "🔥 Request method: " + connection.getRequestMethod());
+            Log.d(TAG, "🔥 Connect timeout: " + connection.getConnectTimeout());
+            Log.d(TAG, "🔥 Read timeout: " + connection.getReadTimeout());
+
+            // 2. NON impostiamo Content-Type o setDoOutput(true) perché non c'è body
+            // connection.setRequestProperty("Content-Type", "application/json");
+            // connection.setDoOutput(true);
+
+            Log.d(TAG, "🔥 Step 2: Invio richiesta PUT...");
+            long startTime = System.currentTimeMillis();
+
+            int responseCode = connection.getResponseCode();
+            long endTime = System.currentTimeMillis();
+
+            Log.d(TAG, "🔥 PUT Response Code: " + responseCode);
+            Log.d(TAG, "🔥 Tempo risposta: " + (endTime - startTime) + "ms");
+
+            // Debug headers di risposta
+            Log.d(TAG, "🔥 === RESPONSE HEADERS ===");
+            for (String headerName : connection.getHeaderFields().keySet()) {
+                Log.d(TAG, "🔥 " + headerName + ": " + connection.getHeaderField(headerName));
+            }
+            Log.d(TAG, "🔥 === END RESPONSE HEADERS ===");
+
+            if (responseCode >= 200 && responseCode < 300) {
+                // Successo
+                Log.d(TAG, "🔥 Step 3: Lettura response di successo...");
+                String response = readResponse(connection.getInputStream());
+                Log.d(TAG, "✅🔥 PUT Response Success: " + response);
+                Log.d(TAG, "✅🔥 ===== EXECUTE PUT REQUEST - SUCCESSO ===== 🔥🔥🔥");
+                return response;
+            } else {
+                // Errore
+                Log.e(TAG, "❌🔥 Step 3: Gestione errore HTTP " + responseCode);
+                String errorResponse = readResponse(connection.getErrorStream());
+                Log.e(TAG, "❌🔥 PUT Error Response: " + errorResponse);
+
+                // Debug aggiuntivo per errori
+                Log.e(TAG, "❌🔥 Response Message: " + connection.getResponseMessage());
+                Log.e(TAG, "❌🔥 Content Type: " + connection.getContentType());
+                Log.e(TAG, "❌🔥 Content Length: " + connection.getContentLength());
+
+                Log.e(TAG, "❌🔥 ===== EXECUTE PUT REQUEST - ERRORE ===== 🔥🔥🔥");
+                throw new Exception("HTTP " + responseCode + ": " + errorResponse);
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌🔥 ===== ECCEZIONE IN EXECUTE PUT REQUEST ===== 🔥🔥🔥");
+            Log.e(TAG, "❌🔥 Tipo eccezione: " + e.getClass().getName());
+            Log.e(TAG, "❌🔥 Messaggio: " + e.getMessage());
+            if (e.getCause() != null) {
+                Log.e(TAG, "❌🔥 Causa: " + e.getCause().getMessage());
+            }
+            Log.e(TAG, "❌🔥 ===== FINE ECCEZIONE ===== 🔥🔥🔥");
+            throw e;
+        } finally {
+            Log.d(TAG, "🔥 Step 4: Disconnect connessione...");
+            connection.disconnect();
+        }
+    }
+
+    /**
      * Esegue una richiesta multipart per upload foto
      */
-    private String executeMultipartRequest(String urlString, File fotoFile,String userId, String descrizioneQuest) throws Exception {
+    private String executeMultipartRequest(String urlString, File fotoFile, String userId, String descrizioneQuest) throws Exception {
 
         // 1. Crea un client OkHttp
         OkHttpClient client = new OkHttpClient.Builder()
@@ -187,7 +370,6 @@ public class ApiService {
             Log.d(TAG, "DEBUG: Nome file: " + fileName + ", Estensione rilevata: '" + extension + "', MediaType impostato: '" + mediaType + "'");
             // === FINE DEBUG ===
 
-
             // 3. Costruisci il corpo della richiesta multipart
             RequestBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
@@ -215,7 +397,6 @@ public class ApiService {
             Log.d(TAG, "===== FINE HEADERS RICHIESTA OKHTTP (DEBUG) =====");
             // === FINE DEBUG ===
 
-
             // 5. Esegui la chiamata e ottieni la risposta
             try (Response response = client.newCall(request).execute()) {
 
@@ -238,11 +419,13 @@ public class ApiService {
             throw e;
         }
     }
+
     /**
      * Legge la risposta da un InputStream
      */
     private String readResponse(InputStream inputStream) throws IOException {
         if (inputStream == null) {
+            Log.d(TAG, "🔥 WARNING: InputStream è null, ritorno stringa vuota");
             return "";
         }
 
@@ -256,7 +439,7 @@ public class ApiService {
         }
 
         String responseText = response.toString();
-        Log.d(TAG, "Response: " + responseText);
+        Log.d(TAG, "Response Read: " + responseText);
         return responseText;
     }
 
