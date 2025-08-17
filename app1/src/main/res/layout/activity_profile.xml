@@ -3,8 +3,8 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#6200EE"
-        tools:context=".ProfileActivity"
+        android:background="?attr/colorSurface"
+        tools:context=".ui.profile.ProfileActivity"
         android:orientation="vertical">
 
         <LinearLayout
@@ -19,7 +19,7 @@
                         android:layout_height="wrap_content"
                         android:text="Il Tuo Profilo"
                         android:textSize="28sp"
-                        android:textColor="@android:color/white"
+                        android:textColor="?attr/colorPrimary"
                         android:textStyle="bold"
                         android:layout_marginTop="32dp"
                         android:layout_marginBottom="48dp" />
@@ -39,7 +39,7 @@
                                 android:layout_weight="1"
                                 android:text="Nome: "
                                 android:textSize="18sp"
-                                android:textColor="@android:color/white" />
+                                android:textColor="?android:attr/textColorPrimary" />
 
                         <ImageView
                                 android:id="@+id/editNameIcon"
@@ -48,7 +48,7 @@
                                 android:src="@android:drawable/ic_menu_edit"
                                 android:background="?android:attr/selectableItemBackgroundBorderless"
                                 android:padding="4dp"
-                                android:tint="@android:color/white"
+                                android:tint="?attr/colorPrimary"
                                 android:clickable="true"
                                 android:focusable="true" />
 
@@ -69,7 +69,7 @@
                                 android:layout_weight="1"
                                 android:text="Cognome: "
                                 android:textSize="18sp"
-                                android:textColor="@android:color/white" />
+                                android:textColor="?android:attr/textColorPrimary" />
 
                         <ImageView
                                 android:id="@+id/editSurnameIcon"
@@ -78,7 +78,7 @@
                                 android:src="@android:drawable/ic_menu_edit"
                                 android:background="?android:attr/selectableItemBackgroundBorderless"
                                 android:padding="4dp"
-                                android:tint="@android:color/white"
+                                android:tint="?attr/colorPrimary"
                                 android:clickable="true"
                                 android:focusable="true" />
 
@@ -99,7 +99,7 @@
                                 android:layout_weight="1"
                                 android:text="Email: "
                                 android:textSize="18sp"
-                                android:textColor="@android:color/white" />
+                                android:textColor="?android:attr/textColorPrimary" />
 
                         <ImageView
                                 android:id="@+id/editEmailIcon"
@@ -108,7 +108,7 @@
                                 android:src="@android:drawable/ic_menu_edit"
                                 android:background="?android:attr/selectableItemBackgroundBorderless"
                                 android:padding="4dp"
-                                android:tint="@android:color/white"
+                                android:tint="?attr/colorPrimary"
                                 android:clickable="true"
                                 android:focusable="true" />
 
@@ -129,7 +129,7 @@
                                 android:layout_weight="1"
                                 android:text="Preferenze: "
                                 android:textSize="18sp"
-                                android:textColor="@android:color/white" />
+                                android:textColor="?android:attr/textColorPrimary" />
 
                         <ImageView
                                 android:id="@+id/editPreferencesIcon"
@@ -138,7 +138,7 @@
                                 android:src="@android:drawable/ic_menu_edit"
                                 android:background="?android:attr/selectableItemBackgroundBorderless"
                                 android:padding="4dp"
-                                android:tint="@android:color/white"
+                                android:tint="?attr/colorPrimary"
                                 android:clickable="true"
                                 android:focusable="true" />
 
@@ -151,7 +151,7 @@
                         android:layout_height="wrap_content"
                         android:text="ID Utente: "
                         android:textSize="18sp"
-                        android:textColor="@android:color/white"
+                        android:textColor="?android:attr/textColorPrimary"
                         android:layout_marginBottom="32dp" />
 
                 <!-- Bottone Torna Indietro -->
@@ -160,8 +160,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Torna Indietro"
-                        android:backgroundTint="@android:color/white"
-                        android:textColor="#6200EE" />
+                        android:backgroundTint="?attr/colorPrimary"
+                        android:textColor="@android:color/white" />
 
         </LinearLayout>
 </ScrollView>

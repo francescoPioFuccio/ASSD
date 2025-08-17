@@ -72,7 +72,8 @@ public class PuntiBonusViewModel extends AndroidViewModel {
 
                     // Parsing del JSON
                     JSONObject jsonResponse = new JSONObject(responseBody);
-                    int points = jsonResponse.optInt("punti", 0);
+                    int points = jsonResponse.optInt("puntiBonus", 0);
+                    Log.d("PuntiBonusViewModel", "Punti estratti dal JSON: " + points);
                     userPoints.postValue(points);
 
                 } else {

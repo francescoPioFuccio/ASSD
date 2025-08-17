@@ -174,10 +174,8 @@ public class QuestSimulationService {
 
         String museoId = questData.optString("museoId", "");
 
-        // Calcola punteggio basato su tempo e difficoltà
-        int punteggioBase = calcolaPunteggio(questId, tempoCompletamento);
-        int bonus = random.nextInt(50); // Bonus casuale 0-50 punti
-        int punteggioTotale = punteggioBase + bonus;
+        // Calcola punteggio FISSO basato sulla difficoltà
+        int punteggioTotale = calcolaPunteggio(questId, tempoCompletamento);
 
         // Salva nel storico con informazione del museo
         salvaQuestNelloStorico(userId, questId, museoId, punteggioTotale, tempoCompletamento);
@@ -192,7 +190,6 @@ public class QuestSimulationService {
         risultato.put("museoId", museoId);
         risultato.put("punteggioOttenuto", punteggioTotale);
         risultato.put("tempoCompletamento", tempoCompletamento);
-        risultato.put("bonus", bonus);
         risultato.put("dataCompletamento", System.currentTimeMillis());
         risultato.put("ricompense", generaRicompense(punteggioTotale));
         risultato.put("timestamp", System.currentTimeMillis());
@@ -425,7 +422,7 @@ public class QuestSimulationService {
         quest.put("difficolta", difficolta);
         quest.put("museoId", museoId); // Aggiungi il museo ID
 
-        // Aggiungi informazioni extra
+        // Aggiungi informazioni extra - ORA UNIFICATO
         quest.put("puntiRicompensa", calcolaPuntiRicompensa(difficolta));
         quest.put("tempoStimato", calcolaTempoStimato(difficolta));
         quest.put("indizi", generaIndizi(nomeOpera, categoria));
@@ -594,18 +591,8 @@ public class QuestSimulationService {
             }
         }
 
-        // Punteggio base per difficoltà
-        int punteggioBase = switch (difficolta) {
-            case "facile" -> 100;
-            case "media" -> 200;
-            case "difficile" -> 300;
-            default -> 150;
-        };
-
-        // Bonus tempo: più veloce = più punti
-        int bonusTempo = Math.max(0, 50 - tempoCompletamento);
-
-        return punteggioBase + bonusTempo;
+        // Punteggio FISSO basato sulla difficoltà - nessun bonus
+        return calcolaPuntiRicompensa(difficolta);
     }
 
     private static void salvaQuestNelloStorico(String userId, String questId, String museoId, int punteggio, int tempo) {
@@ -641,9 +628,9 @@ public class QuestSimulationService {
     private static JSONObject generaRicompense(int punteggio) {
         JSONObject ricompense = new JSONObject();
 
-        // Badge basati sul punteggio
+        // Badge basati sul punteggio FISSO
         JSONArray badge = new JSONArray();
-        if (punteggio >= 250) {
+        if (punteggio >= 200) {
             badge.put("Esploratore Esperto");
         }
         if (punteggio >= 300) {
@@ -653,10 +640,7 @@ public class QuestSimulationService {
         ricompense.put("badge", badge);
         ricompense.put("esperienza", punteggio / 10);
 
-        // Ricompense speciali casuali
-        if (random.nextInt(100) < 20) { // 20% possibilità
-            ricompense.put("ricompensaSpeciale", "Accesso VIP alla prossima mostra temporanea");
-        }
+        // Nessuna ricompensa casuale - tutto basato sul punteggio fisso della quest
 
         return ricompense;
     }
@@ -670,7 +654,7 @@ public class QuestSimulationService {
         quest.put("autoreOpera", "Artista da Scoprire");
         quest.put("categoria", "generale");
         quest.put("difficolta", "media");
-        quest.put("puntiRicompensa", 80);
+        quest.put("puntiRicompensa", calcolaPuntiRicompensa("media"));
         quest.put("tempoStimato", 20);
         quest.put("indizi", new JSONArray().put("Cerca nell'ala principale del museo"));
 
@@ -679,12 +663,16 @@ public class QuestSimulationService {
 
     // === METODI DI SUPPORTO PER LA GENERAZIONE DATI ===
 
+    /**
+     * METODO UNIFICATO: Calcola punti ricompensa che ora corrisponde al punteggio base
+     * Questo metodo è ora utilizzato sia per visualizzazione che per completamento
+     */
     private static int calcolaPuntiRicompensa(String difficolta) {
         return switch (difficolta) {
-            case "facile" -> 20;
-            case "media" -> 40;
-            case "difficile" -> 80;
-            default -> 30;
+            case "facile" -> 100;   // Era 20, ora 100 come nel completamento
+            case "media" -> 200;    // Era 40, ora 200 come nel completamento
+            case "difficile" -> 300; // Era 80, ora 300 come nel completamento
+            default -> 150;         // Era 30, ora 150 come nel completamento
         };
     }
 
@@ -784,6 +772,7 @@ public class QuestSimulationService {
 
         return suggerimenti;
     }
+
     public static JSONObject getMuseiVisitati(String userId) {
         System.out.println("📊 Recupero musei visitati per utente: " + userId);
 
@@ -874,6 +863,5 @@ public class QuestSimulationService {
             default: return "Città non specificata";
         }
     }
-
 
 }
