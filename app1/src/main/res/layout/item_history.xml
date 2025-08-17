@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                                   xmlns:app="http://schemas.android.com/apk/res-auto"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="wrap_content"
+                                   android:layout_marginHorizontal="8dp"
+                                   android:layout_marginVertical="4dp"
+                                   app:cardCornerRadius="12dp"
+                                   app:cardElevation="4dp"
+                                   app:cardBackgroundColor="@color/card_background_color"
+                                   android:foreground="?attr/selectableItemBackground"
+                                   android:clickable="true"
+                                   android:focusable="true">
+
+  <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"
+          android:padding="16dp"
+          android:gravity="center_vertical">
+
+    <!-- Icona -->
+    <ImageView
+            android:id="@+id/historyIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_museum"
+            android:layout_marginEnd="16dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/icon_background"
+            android:padding="8dp" />
+
+    <!-- Contenuto principale -->
+    <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+      <!-- Titolo -->
+      <TextView
+              android:id="@+id/historyTitle"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="Titolo Item"
+              android:textSize="16sp"
+              android:textStyle="bold"
+              android:textColor="@color/primary_text_color"
+              android:maxLines="2"
+              android:ellipsize="end" />
+
+      <!-- Sottotitolo -->
+      <TextView
+              android:id="@+id/historySubtitle"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="Sottotitolo"
+              android:textSize="14sp"
+              android:textColor="@color/secondary_text_color"
+              android:layout_marginTop="2dp"
+              android:maxLines="1"
+              android:ellipsize="end" />
+
+      <!-- Data -->
+      <TextView
+              android:id="@+id/historyDate"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="Data"
+              android:textSize="12sp"
+              android:textColor="@color/tertiary_text_color"
+              android:layout_marginTop="4dp"
+              android:maxLines="1"
+              android:ellipsize="end" />
+
+      <!-- Dettagli aggiuntivi -->
+      <TextView
+              android:id="@+id/historyDetails"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:text="Dettagli"
+              android:textSize="12sp"
+              android:textColor="@color/accent_color"
+              android:layout_marginTop="4dp"
+              android:maxLines="1"
+              android:ellipsize="end"
+              android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Indicatore freccia -->
+    <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_chevron_right"
+            android:layout_marginStart="8dp"
+            android:tint="@color/tertiary_text_color" />
+
+  </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -25,4 +25,30 @@
     <color name="gray_300">#E0E0E0</color>
     <color name="error">#B00020</color>
 
+    <!-- Colori per History -->
+    <color name="background_color">#F5F5F5</color>
+    <color name="card_background_color">#FFFFFF</color>
+    <color name="primary_text_color">#212121</color>
+    <color name="secondary_text_color">#757575</color>
+    <color name="tertiary_text_color">#BDBDBD</color>
+    <color name="primary_color">#2196F3</color>
+    <color name="accent_color">#FF9800</color>
+    <color name="border_color">#E0E0E0</color>
+    <color name="divider_color">#E0E0E0</color>
+
+    <!-- Tab colors -->
+    <color name="tab_container_color">#F0F0F0</color>
+
+    <!-- Item type colors -->
+    <color name="museum_item_color">#E3F2FD</color>
+    <color name="museum_border_color">#2196F3</color>
+    <color name="quest_item_color">#FFF3E0</color>
+    <color name="quest_border_color">#FF9800</color>
+    <color name="icon_background_color">#F5F5F5</color>
+
+    <!-- Quest difficulty colors -->
+    <color name="quest_easy_color">#4CAF50</color>
+    <color name="quest_medium_color">#FF9800</color>
+    <color name="quest_hard_color">#F44336</color>
+
 </resources>

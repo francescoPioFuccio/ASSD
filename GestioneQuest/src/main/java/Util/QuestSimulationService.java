@@ -213,13 +213,98 @@ public class QuestSimulationService {
             storico.put("statistiche", new JSONObject()
                     .put("questTotali", 0)
                     .put("punteggioTotale", 0)
-                    .put("tempoMedioCompletamento", 0));
+                    .put("tempoMedioCompletamento", 0)
+                    .put("museiVisitati", 0));
+        }
+
+        try {
+            // Arricchisci ogni quest con informazioni dettagliate
+            JSONArray questCompletate = storico.getJSONArray("questCompletate");
+            JSONArray questArricchite = new JSONArray();
+
+            for (int i = 0; i < questCompletate.length(); i++) {
+                JSONObject quest = questCompletate.getJSONObject(i);
+                JSONObject questArricchita = new JSONObject(quest.toString());
+
+                // Aggiungi informazioni del museo
+                String museoId = quest.optString("museoId", "");
+                questArricchita.put("nomeMuseo", getNomeMuseo(museoId));
+                questArricchita.put("cittaMuseo", getCittaMuseo(museoId));
+
+                // Aggiungi informazioni della quest
+                String questId = quest.optString("questId", "");
+                questArricchita.put("titoloQuest", getTitoloQuest(questId));
+                questArricchita.put("difficolta", getDifficoltaQuest(questId));
+                questArricchita.put("categoriaQuest", getCategoriaQuest(questId));
+
+                questArricchite.put(questArricchita);
+            }
+
+            storico.put("questCompletate", questArricchite);
+
+            // Calcola statistiche aggiornate
+            JSONObject stats = storico.getJSONObject("statistiche");
+            stats.put("museiVisitati", calcolaMuseiUnici(questArricchite));
+
+        } catch (Exception e) {
+            System.out.println("❌ Errore nell'arricchimento dati: " + e.getMessage());
         }
 
         storico.put("userId", userId);
         storico.put("timestamp", System.currentTimeMillis());
 
         return storico;
+    }
+
+    // Metodi di supporto aggiuntivi:
+    private static String getTitoloQuest(String questId) {
+        if (questId.contains("GIOCONDA")) return "Trova la Gioconda";
+        if (questId.contains("ULTIMA_CENA")) return "L'Ultima Cena";
+        if (questId.contains("VENERE")) return "La Nascita di Venere";
+        if (questId.contains("NOTTE_STELLATA")) return "La Notte Stellata";
+        if (questId.contains("T_REX")) return "Il Fossile del T-Rex";
+        if (questId.contains("TAVOLA_PERIODICA")) return "La Tavola Periodica Originale";
+        if (questId.contains("TELESCOPIO")) return "Il Telescopio di Galileo";
+        if (questId.contains("ROSETTA")) return "La Stele di Rosetta";
+        if (questId.contains("ARMATURA")) return "L'Armatura del Cavaliere";
+        if (questId.contains("MANOSCRITTO")) return "Il Manoscritto Illuminato";
+        if (questId.contains("COMPUTER")) return "Il Primo Computer";
+        if (questId.contains("FORD")) return "L'Automobile di Ford";
+        if (questId.contains("MONARCA")) return "La Farfalla Monarca";
+        if (questId.contains("QUARZO")) return "Il Cristallo di Quarzo Gigante";
+        return "Quest Misteriosa";
+    }
+
+    private static String getDifficoltaQuest(String questId) {
+        if (questId.contains("001")) return "facile";
+        if (questId.contains("002")) return "media";
+        if (questId.contains("003")) return "difficile";
+        return "media";
+    }
+
+    private static String getCategoriaQuest(String questId) {
+        if (questId.contains("ARTE")) return "arte";
+        if (questId.contains("SCIENZA")) return "scienza";
+        if (questId.contains("STORIA")) return "storia";
+        if (questId.contains("TECNOLOGIA")) return "tecnologia";
+        if (questId.contains("NATURA")) return "natura";
+        return "generale";
+    }
+
+    private static int calcolaMuseiUnici(JSONArray questCompletate) {
+        try {
+            Set<String> museiUnici = new HashSet<>();
+            for (int i = 0; i < questCompletate.length(); i++) {
+                JSONObject quest = questCompletate.getJSONObject(i);
+                String museoId = quest.optString("museoId", "");
+                if (!museoId.isEmpty()) {
+                    museiUnici.add(museoId);
+                }
+            }
+            return museiUnici.size();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     /**
@@ -699,4 +784,96 @@ public class QuestSimulationService {
 
         return suggerimenti;
     }
+    public static JSONObject getMuseiVisitati(String userId) {
+        System.out.println("📊 Recupero musei visitati per utente: " + userId);
+
+        JSONObject storico = storicoUtenti.getOrDefault(userId, new JSONObject());
+        JSONObject risultato = new JSONObject();
+
+        try {
+            JSONArray questCompletate = storico.optJSONArray("questCompletate");
+            if (questCompletate == null) {
+                questCompletate = new JSONArray();
+            }
+
+            // Mappa per raccogliere musei unici
+            Map<String, JSONObject> museiVisitatiMap = new HashMap<>();
+
+            for (int i = 0; i < questCompletate.length(); i++) {
+                JSONObject quest = questCompletate.getJSONObject(i);
+                String museoId = quest.optString("museoId", "");
+
+                if (!museoId.isEmpty()) {
+                    if (museiVisitatiMap.containsKey(museoId)) {
+                        // Incrementa il contatore delle quest per questo museo
+                        JSONObject museoInfo = museiVisitatiMap.get(museoId);
+                        int questCount = museoInfo.optInt("questCompletate", 0);
+                        museoInfo.put("questCompletate", questCount + 1);
+
+                        // Aggiorna la data di ultima visita se più recente
+                        long dataEsistente = museoInfo.optLong("ultimaVisita", 0);
+                        long nuovaData = quest.optLong("dataCompletamento", 0);
+                        if (nuovaData > dataEsistente) {
+                            museoInfo.put("ultimaVisita", nuovaData);
+                        }
+                    } else {
+                        // Primo incontro con questo museo
+                        JSONObject museoInfo = new JSONObject();
+                        museoInfo.put("museoId", museoId);
+                        museoInfo.put("nomeMuseo", getNomeMuseo(museoId));
+                        museoInfo.put("citta", getCittaMuseo(museoId));
+                        museoInfo.put("questCompletate", 1);
+                        museoInfo.put("ultimaVisita", quest.optLong("dataCompletamento", 0));
+                        museoInfo.put("primaVisita", quest.optLong("dataCompletamento", 0));
+
+                        museiVisitatiMap.put(museoId, museoInfo);
+                    }
+                }
+            }
+
+            // Converti la mappa in JSONArray
+            JSONArray museiArray = new JSONArray();
+            for (JSONObject museoInfo : museiVisitatiMap.values()) {
+                museiArray.put(museoInfo);
+            }
+
+            risultato.put("success", true);
+            risultato.put("userId", userId);
+            risultato.put("museiVisitati", museiArray);
+            risultato.put("totaleMusei", museiArray.length());
+            risultato.put("timestamp", System.currentTimeMillis());
+
+        } catch (Exception e) {
+            System.out.println("❌ Errore recupero musei visitati: " + e.getMessage());
+            risultato.put("success", false);
+            risultato.put("message", "Errore nel recupero dei musei visitati");
+        }
+
+        return risultato;
+    }
+
+    // Metodi di supporto da aggiungere:
+    private static String getNomeMuseo(String museoId) {
+        switch (museoId) {
+            case "MUS_ARTE": return "Museo d'Arte";
+            case "MUS_SCIENZA": return "Museo delle Scienze";
+            case "MUS_STORIA": return "Museo di Storia";
+            case "MUS_TECNOLOGIA": return "Museo della Tecnologia";
+            case "MUS_NATURA": return "Museo di Scienze Naturali";
+            default: return "Museo Sconosciuto";
+        }
+    }
+
+    private static String getCittaMuseo(String museoId) {
+        switch (museoId) {
+            case "MUS_ARTE": return "Firenze";
+            case "MUS_SCIENZA": return "Milano";
+            case "MUS_STORIA": return "Roma";
+            case "MUS_TECNOLOGIA": return "Torino";
+            case "MUS_NATURA": return "Napoli";
+            default: return "Città non specificata";
+        }
+    }
+
+
 }

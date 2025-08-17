@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#f8fafc"
+            tools:context=".QuestHistoryActivity">
+
+  <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          android:padding="16dp">
+
+    <!-- Header -->
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+      <ImageView
+              android:id="@+id/btn_back"
+              android:layout_width="24dp"
+              android:layout_height="24dp"
+              android:src="@drawable/ic_arrow_back"
+              android:clickable="true"
+              android:focusable="true"
+              android:background="?attr/selectableItemBackgroundBorderless"
+              app:tint="#374151" />
+
+      <TextView
+              android:layout_width="0dp"
+              android:layout_height="wrap_content"
+              android:layout_weight="1"
+              android:text="La Tua Storia"
+              android:textSize="24sp"
+              android:textColor="#1f2937"
+              android:textStyle="bold"
+              android:gravity="center"
+              android:layout_marginEnd="24dp" />
+
+    </LinearLayout>
+
+    <!-- Statistiche Generali -->
+    <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+      <LinearLayout
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:padding="20dp">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="I Tuoi Risultati"
+                android:textSize="18sp"
+                android:textColor="#1f2937"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+          <!-- Quest Totali -->
+          <LinearLayout
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"
+                  android:orientation="vertical"
+                  android:gravity="center">
+
+            <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_target"
+                    app:tint="#3b82f6"
+                    android:layout_marginBottom="8dp" />
+
+            <TextView
+                    android:id="@+id/tv_quest_totali"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="24sp"
+                    android:textColor="#1f2937"
+                    android:textStyle="bold" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Quest"
+                    android:textSize="12sp"
+                    android:textColor="#6b7280" />
+
+          </LinearLayout>
+
+          <!-- Punteggio Totale -->
+          <LinearLayout
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"
+                  android:orientation="vertical"
+                  android:gravity="center">
+
+            <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_trophy"
+                    app:tint="#f59e0b"
+                    android:layout_marginBottom="8dp" />
+
+            <TextView
+                    android:id="@+id/tv_punteggio_totale"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="24sp"
+                    android:textColor="#1f2937"
+                    android:textStyle="bold" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Punti"
+                    android:textSize="12sp"
+                    android:textColor="#6b7280" />
+
+          </LinearLayout>
+
+          <!-- Tempo Totale -->
+          <LinearLayout
+                  android:layout_width="0dp"
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"
+                  android:orientation="vertical"
+                  android:gravity="center">
+
+            <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_clock"
+                    app:tint="#10b981"
+                    android:layout_marginBottom="8dp" />
+
+            <TextView
+                    android:id="@+id/tv_tempo_totale"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="24sp"
+                    android:textColor="#1f2937"
+                    android:textStyle="bold" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Minuti"
+                    android:textSize="12sp"
+                    android:textColor="#6b7280" />
+
+          </LinearLayout>
+
+        </LinearLayout>
+
+      </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Sezione Musei Visitati -->
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Musei Visitati"
+            android:textSize="20sp"
+            android:textColor="#1f2937"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+    <!-- Lista Musei (verrà popolata dinamicamente) -->
+    <LinearLayout
+            android:id="@+id/layout_musei_visitati"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    <!-- Loading Indicator -->
+    <LinearLayout
+            android:id="@+id/layout_loading"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="visible">
+
+      <ProgressBar
+              android:layout_width="48dp"
+              android:layout_height="48dp"
+              android:layout_marginBottom="16dp" />
+
+      <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Caricamento storia..."
+              android:textColor="#6b7280"
+              android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!-- Empty State -->
+    <LinearLayout
+            android:id="@+id/layout_empty"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+      <ImageView
+              android:layout_width="64dp"
+              android:layout_height="64dp"
+              android:src="@drawable/ic_empty_history"
+              app:tint="#9ca3af"
+              android:layout_marginBottom="16dp" />
+
+      <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Nessuna quest completata"
+              android:textColor="#6b7280"
+              android:textSize="18sp"
+              android:textStyle="bold"
+              android:layout_marginBottom="8dp" />
+
+      <TextView
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:text="Inizia la tua prima avventura!"
+              android:textColor="#9ca3af"
+              android:textSize="14sp"
+              android:gravity="center" />
+
+    </LinearLayout>
+
+  </LinearLayout>
+
+</ScrollView>

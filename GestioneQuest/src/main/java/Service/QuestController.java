@@ -14,6 +14,9 @@ import org.json.JSONException;
 import org.json.JSONArray;
 import com.google.gson.Gson;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Path("/quest")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
@@ -271,6 +274,99 @@ public class QuestController {
         }
     }
 
+
+
+
+    @GET
+    @Path("/musei-visitati/{userId}")
+    public Response getMuseiVisitati(@PathParam("userId") String userId) {
+        System.out.println("=== DEBUG MUSEI VISITATI ===");
+        System.out.println("UserId: " + userId);
+
+        try {
+            if (userId == null || userId.isEmpty()) {
+                System.out.println("❌ UserId mancante");
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"UserId è obbligatorio.\"}")
+                        .build();
+            }
+
+            JSONObject museiVisitati = QuestSimulationService.getMuseiVisitati(userId);
+
+            System.out.println("✅ Musei visitati recuperati");
+            return Response.status(Response.Status.OK)
+                    .entity(museiVisitati.toString())
+                    .build();
+
+        } catch (Exception e) {
+            System.out.println("❌ Errore recupero musei visitati: " + e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Errore nel recupero musei visitati: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+    @GET
+    @Path("/statistiche/{userId}")
+    public Response getStatisticheDettagliate(@PathParam("userId") String userId) {
+        System.out.println("=== DEBUG STATISTICHE DETTAGLIATE ===");
+        System.out.println("UserId: " + userId);
+
+        try {
+            if (userId == null || userId.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"UserId è obbligatorio.\"}")
+                        .build();
+            }
+
+            JSONObject storico = QuestSimulationService.getStoricoQuest(userId);
+            JSONObject statistiche = new JSONObject();
+
+            // Estrai statistiche dal storico
+            JSONObject stats = storico.optJSONObject("statistiche");
+            JSONArray questCompletate = storico.optJSONArray("questCompletate");
+
+            if (stats != null) {
+                statistiche.put("questTotali", stats.optInt("questTotali", 0));
+                statistiche.put("punteggioTotale", stats.optInt("punteggioTotale", 0));
+                statistiche.put("museiVisitati", stats.optInt("museiVisitati", 0));
+
+                // Calcola statistiche aggiuntive
+                if (questCompletate != null && questCompletate.length() > 0) {
+                    int tempoTotale = 0;
+                    Map<String, Integer> difficoltaCount = new HashMap<>();
+                    Map<String, Integer> categoriaCount = new HashMap<>();
+
+                    for (int i = 0; i < questCompletate.length(); i++) {
+                        JSONObject quest = questCompletate.getJSONObject(i);
+                        tempoTotale += quest.optInt("tempoCompletamento", 0);
+
+                        String difficolta = quest.optString("difficolta", "media");
+                        difficoltaCount.put(difficolta, difficoltaCount.getOrDefault(difficolta, 0) + 1);
+
+                        String categoria = quest.optString("categoriaQuest", "generale");
+                        categoriaCount.put(categoria, categoriaCount.getOrDefault(categoria, 0) + 1);
+                    }
+
+                    statistiche.put("tempoMedio", questCompletate.length() > 0 ? tempoTotale / questCompletate.length() : 0);
+                    statistiche.put("distribuzioneDifficolta", new JSONObject(difficoltaCount));
+                    statistiche.put("distribuzioneCategorie", new JSONObject(categoriaCount));
+                }
+            }
+
+            statistiche.put("userId", userId);
+            statistiche.put("timestamp", System.currentTimeMillis());
+
+            return Response.status(Response.Status.OK)
+                    .entity(statistiche.toString())
+                    .build();
+
+        } catch (Exception e) {
+            System.out.println("❌ Errore statistiche dettagliate: " + e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Errore nelle statistiche: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
     /**
      * Endpoint per verificare lo stato del servizio quest
      */
