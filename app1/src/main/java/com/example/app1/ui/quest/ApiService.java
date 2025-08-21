@@ -241,97 +241,43 @@ public class ApiService {
         }
     }
 
-    /**
-     * === METODO PUT CON DEBUG MASSIMO ===
-     * Esegue una richiesta PUT senza corpo (body).
-     * Utile per chiamate in cui i dati sono passati come parametri nell'URL.
-     *
-     * @param urlString L'URL completo della richiesta, inclusi i parametri.
-     * @return La risposta del server come stringa.
-     * @throws Exception In caso di errore di rete o risposta non riuscita dal server.
-     */
     private String executePutRequest(String urlString) throws Exception {
-        Log.d(TAG, "🔥🔥🔥 ===== EXECUTE PUT REQUEST DEBUG ===== 🔥🔥🔥");
-        Log.d(TAG, "🔥 URL richiesta PUT: " + urlString);
 
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        Log.d(TAG, "🔥 URL object creato: " + url.toString());
-        Log.d(TAG, "🔥 Host: " + url.getHost());
-        Log.d(TAG, "🔥 Port: " + url.getPort());
-        Log.d(TAG, "🔥 Path: " + url.getPath());
-        Log.d(TAG, "🔥 Query: " + url.getQuery());
-
         try {
-            Log.d(TAG, "🔥 Step 1: Configurazione connessione...");
             // 1. Imposta il metodo su PUT
             connection.setRequestMethod("PUT");
             connection.setConnectTimeout(TIMEOUT_MS);
             connection.setReadTimeout(TIMEOUT_MS);
             connection.setRequestProperty("Accept", "application/json");
 
-            Log.d(TAG, "🔥 Request method: " + connection.getRequestMethod());
-            Log.d(TAG, "🔥 Connect timeout: " + connection.getConnectTimeout());
-            Log.d(TAG, "🔥 Read timeout: " + connection.getReadTimeout());
-
             // 2. NON impostiamo Content-Type o setDoOutput(true) perché non c'è body
             // connection.setRequestProperty("Content-Type", "application/json");
             // connection.setDoOutput(true);
 
-            Log.d(TAG, "🔥 Step 2: Invio richiesta PUT...");
+            // 3. Invio richiesta PUT
             long startTime = System.currentTimeMillis();
-
             int responseCode = connection.getResponseCode();
             long endTime = System.currentTimeMillis();
 
-            Log.d(TAG, "🔥 PUT Response Code: " + responseCode);
-            Log.d(TAG, "🔥 Tempo risposta: " + (endTime - startTime) + "ms");
-
-            // Debug headers di risposta
-            Log.d(TAG, "🔥 === RESPONSE HEADERS ===");
-            for (String headerName : connection.getHeaderFields().keySet()) {
-                Log.d(TAG, "🔥 " + headerName + ": " + connection.getHeaderField(headerName));
-            }
-            Log.d(TAG, "🔥 === END RESPONSE HEADERS ===");
-
             if (responseCode >= 200 && responseCode < 300) {
                 // Successo
-                Log.d(TAG, "🔥 Step 3: Lettura response di successo...");
                 String response = readResponse(connection.getInputStream());
-                Log.d(TAG, "✅🔥 PUT Response Success: " + response);
-                Log.d(TAG, "✅🔥 ===== EXECUTE PUT REQUEST - SUCCESSO ===== 🔥🔥🔥");
                 return response;
             } else {
                 // Errore
-                Log.e(TAG, "❌🔥 Step 3: Gestione errore HTTP " + responseCode);
                 String errorResponse = readResponse(connection.getErrorStream());
-                Log.e(TAG, "❌🔥 PUT Error Response: " + errorResponse);
-
-                // Debug aggiuntivo per errori
-                Log.e(TAG, "❌🔥 Response Message: " + connection.getResponseMessage());
-                Log.e(TAG, "❌🔥 Content Type: " + connection.getContentType());
-                Log.e(TAG, "❌🔥 Content Length: " + connection.getContentLength());
-
-                Log.e(TAG, "❌🔥 ===== EXECUTE PUT REQUEST - ERRORE ===== 🔥🔥🔥");
                 throw new Exception("HTTP " + responseCode + ": " + errorResponse);
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "❌🔥 ===== ECCEZIONE IN EXECUTE PUT REQUEST ===== 🔥🔥🔥");
-            Log.e(TAG, "❌🔥 Tipo eccezione: " + e.getClass().getName());
-            Log.e(TAG, "❌🔥 Messaggio: " + e.getMessage());
-            if (e.getCause() != null) {
-                Log.e(TAG, "❌🔥 Causa: " + e.getCause().getMessage());
-            }
-            Log.e(TAG, "❌🔥 ===== FINE ECCEZIONE ===== 🔥🔥🔥");
             throw e;
         } finally {
-            Log.d(TAG, "🔥 Step 4: Disconnect connessione...");
             connection.disconnect();
         }
     }
-
     /**
      * Esegue una richiesta multipart per upload foto
      */

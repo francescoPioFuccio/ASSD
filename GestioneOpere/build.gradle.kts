@@ -1,6 +1,6 @@
 plugins {
+    id("org.gradle.war")
     id("java")
-    id("war") // Aggiungi il plugin WAR per creare file .war
 }
 
 group = "it.unisannio.gateway"
@@ -29,6 +29,15 @@ dependencies {
     compileOnly("jakarta.platform:jakarta.jakartaee-api:10.0.0")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
 }
+
+tasks.named<War>("war") {
+    // Imposta il nome del file WAR
+    archiveFileName.set("gestioneopere.war")
+
+    // Gestisci i duplicati
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 
 tasks.test {
     useJUnitPlatform()

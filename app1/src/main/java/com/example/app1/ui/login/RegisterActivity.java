@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -107,44 +108,88 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void attemptRegister() {
+        Log.d("RegisterActivity", "=== INIZIO ATTEMPT REGISTER ===");
+
         final ProgressBar loadingProgressBar = binding.loading;
         loadingProgressBar.setVisibility(android.view.View.VISIBLE);
 
-        // Raccogli preferenze selezionate dai CheckBox
+        // Debug dei valori dei campi
+        String nome = binding.nome.getText().toString();
+        String cognome = binding.cognome.getText().toString();
+        String email = binding.email.getText().toString();
+        String password = binding.password.getText().toString();
+        String confirmPassword = binding.confirmPassword.getText().toString();
+
+        Log.d("RegisterActivity", "Nome: '" + nome + "'");
+        Log.d("RegisterActivity", "Cognome: '" + cognome + "'");
+        Log.d("RegisterActivity", "Email: '" + email + "'");
+        Log.d("RegisterActivity", "Password length: " + (password != null ? password.length() : "null"));
+        Log.d("RegisterActivity", "ConfirmPassword length: " + (confirmPassword != null ? confirmPassword.length() : "null"));
+        Log.d("RegisterActivity", "Password match: " + (password != null && password.equals(confirmPassword)));
+
+        // Raccogli preferenze selezionate dai CheckBox CON GLI ID CORRETTI
         List<String> selectedMuseumPreferences = new ArrayList<>();
-        if (((CheckBox)findViewById(R.id.checkbox_arte)).isChecked())
+
+        // USANDO GLI ID DAL LAYOUT XML
+        CheckBox checkboxArt = findViewById(R.id.checkbox_art);
+        if (checkboxArt != null && checkboxArt.isChecked()) {
             selectedMuseumPreferences.add("Arte");
-        if (((CheckBox)findViewById(R.id.checkbox_scienza)).isChecked())
+            Log.d("RegisterActivity", "✅ Arte selezionata");
+        }
+
+        CheckBox checkboxScience = findViewById(R.id.checkbox_science);
+        if (checkboxScience != null && checkboxScience.isChecked()) {
             selectedMuseumPreferences.add("Scienza");
-        if (((CheckBox)findViewById(R.id.checkbox_storia)).isChecked())
+            Log.d("RegisterActivity", "✅ Scienza selezionata");
+        }
+
+        CheckBox checkboxHistory = findViewById(R.id.checkbox_history);
+        if (checkboxHistory != null && checkboxHistory.isChecked()) {
             selectedMuseumPreferences.add("Storia");
-        if (((CheckBox)findViewById(R.id.checkbox_tecnologia)).isChecked())
+            Log.d("RegisterActivity", "✅ Storia selezionata");
+        }
+
+        CheckBox checkboxTech = findViewById(R.id.checkbox_tech);
+        if (checkboxTech != null && checkboxTech.isChecked()) {
             selectedMuseumPreferences.add("Tecnologia");
-        if (((CheckBox)findViewById(R.id.checkbox_archeologia)).isChecked())
+            Log.d("RegisterActivity", "✅ Tecnologia selezionata");
+        }
+
+        CheckBox checkboxArchaeology = findViewById(R.id.checkbox_archaeology);
+        if (checkboxArchaeology != null && checkboxArchaeology.isChecked()) {
             selectedMuseumPreferences.add("Archeologia");
-        if (((CheckBox)findViewById(R.id.checkbox_naturalistica)).isChecked())
+            Log.d("RegisterActivity", "✅ Archeologia selezionata");
+        }
+
+        CheckBox checkboxNature = findViewById(R.id.checkbox_nature);
+        if (checkboxNature != null && checkboxNature.isChecked()) {
             selectedMuseumPreferences.add("Storia Naturale");
-        if (((CheckBox)findViewById(R.id.checkbox_design)).isChecked())
-            selectedMuseumPreferences.add("Design");
-        if (((CheckBox)findViewById(R.id.checkbox_fotografia)).isChecked())
-            selectedMuseumPreferences.add("Fotografia");
+            Log.d("RegisterActivity", "✅ Natura selezionata");
+        }
+
+        Log.d("RegisterActivity", "Preferenze selezionate: " + selectedMuseumPreferences);
+        Log.d("RegisterActivity", "Numero preferenze: " + selectedMuseumPreferences.size());
 
         if (selectedMuseumPreferences.isEmpty()) {
+            Log.e("RegisterActivity", "BLOCCO: Nessuna preferenza museo selezionata");
             loadingProgressBar.setVisibility(android.view.View.GONE);
             Toast.makeText(this, "Seleziona almeno un tipo di museo preferito", Toast.LENGTH_SHORT).show();
             return;
         }
 
         String preferencesString = String.join(",", selectedMuseumPreferences);
+        Log.d("RegisterActivity", "Preferences CSV: '" + preferencesString + "'");
 
+        Log.d("RegisterActivity", "=== CHIAMATA REGISTER VIEW MODEL ===");
         registerViewModel.register(
-                binding.nome.getText().toString(),
-                binding.cognome.getText().toString(),
-                binding.email.getText().toString(),
-                binding.password.getText().toString(),
-                binding.confirmPassword.getText().toString(),
+                nome,
+                cognome,
+                email,
+                password,
+                confirmPassword,
                 preferencesString
         );
+        Log.d("RegisterActivity", "=== REGISTER VIEW MODEL CHIAMATO ===");
     }
 
     private void updateUiWithUser(RegisteredUserView model) {

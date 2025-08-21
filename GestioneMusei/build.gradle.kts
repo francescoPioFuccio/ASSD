@@ -1,4 +1,5 @@
 plugins {
+    id("org.gradle.war")
     id("java")
 }
 
@@ -16,6 +17,16 @@ dependencies {
     implementation("org.json:json:20240303")
     implementation("com.google.code.gson:gson:2.10.1")
 }
+
+tasks.named<War>("war") {
+    // Imposta il nome del file WAR
+    archiveFileName.set("gestionemuseo.war")
+
+
+   // Gestisci i duplicati
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE // o DuplicatesStrategy.REPLACE, se preferisci sovrascrivere
+}
+
 
 tasks.test {
     useJUnitPlatform()

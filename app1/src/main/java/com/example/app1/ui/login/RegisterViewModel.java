@@ -44,14 +44,27 @@ public class RegisterViewModel extends ViewModel {
     public void register(String nome, String cognome, String email,
                          String password, String confirmPassword,
                          String museumPreferencesCsv) {
+        Log.d(TAG, "🔥 === INIZIO METODO REGISTER === 🔥");
+        Log.d(TAG, "Nome: '" + nome + "'");
+        Log.d(TAG, "Cognome: '" + cognome + "'");
+        Log.d(TAG, "Email: '" + email + "'");
+        Log.d(TAG, "Password: " + (password != null ? "[PRESENTE]" : "null"));
+        Log.d(TAG, "ConfirmPassword: " + (confirmPassword != null ? "[PRESENTE]" : "null"));
+        Log.d(TAG, "MuseumPreferences: '" + museumPreferencesCsv + "'");
+
         executor.execute(() -> {
+            Log.d(TAG, "=== ESECUZIONE IN BACKGROUND THREAD ===");
+
             if (!password.equals(confirmPassword)) {
+                Log.e(TAG, "ERRORE: Password non corrispondono!");
                 registerResult.postValue(new RegisterResult(R.string.error_password_mismatch));
                 return;
             }
+            Log.d(TAG, "✅ Password corrispondono");
 
             OkHttpClient client = new OkHttpClient();
             String url = "http://10.0.2.2:8085/usermodule3/api/users/register";
+            Log.d(TAG, "URL: " + url);
 
             JSONObject json = new JSONObject();
             try {
@@ -70,11 +83,10 @@ public class RegisterViewModel extends ViewModel {
                 }
                 json.put("museoPreferito", preferencesArray);
 
-                Log.d(TAG, "Sending registration data: " + json);
-                Log.d(TAG, "POST URL: " + url);
+                Log.d(TAG, "JSON creato: " + json.toString());
 
             } catch (JSONException e) {
-                Log.e(TAG, "JSON creation error", e);
+                Log.e(TAG, "ERRORE: JSON creation error", e);
                 registerResult.postValue(new RegisterResult(R.string.register_failed));
                 return;
             }
@@ -82,21 +94,39 @@ public class RegisterViewModel extends ViewModel {
             RequestBody body = RequestBody.create(json.toString(), MediaType.get("application/json"));
             Request request = new Request.Builder().url(url).post(body).build();
 
+            Log.d(TAG, "=== INVIO RICHIESTA HTTP ===");
+            Log.d(TAG, "Request method: " + request.method());
+            Log.d(TAG, "Request URL: " + request.url());
+            Log.d(TAG, "Request body: " + json.toString());
+
             try (Response response = client.newCall(request).execute()) {
                 String responseBody = response.body() != null ? response.body().string() : "null";
+                Log.d(TAG, "=== RISPOSTA RICEVUTA ===");
                 Log.d(TAG, "Response code: " + response.code());
                 Log.d(TAG, "Response body: " + responseBody);
+                Log.d(TAG, "Response successful: " + response.isSuccessful());
 
                 if (response.isSuccessful()) {
+                    Log.d(TAG, "✅ REGISTRAZIONE RIUSCITA");
                     registerResult.postValue(new RegisterResult(new RegisteredUserView(email)));
                 } else {
+                    Log.e(TAG, "❌ REGISTRAZIONE FALLITA - Codice: " + response.code());
                     registerResult.postValue(new RegisterResult(R.string.register_failed));
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Network error during registration", e);
+                Log.e(TAG, "❌ ERRORE DI RETE", e);
+                Log.e(TAG, "Messaggio errore: " + e.getMessage());
+                Log.e(TAG, "Causa: " + e.getCause());
+                registerResult.postValue(new RegisterResult(R.string.register_failed));
+            } catch (Exception e) {
+                Log.e(TAG, "❌ ERRORE GENERICO", e);
                 registerResult.postValue(new RegisterResult(R.string.register_failed));
             }
+
+            Log.d(TAG, "=== FINE ESECUZIONE BACKGROUND THREAD ===");
         });
+
+        Log.d(TAG, "=== FINE METODO REGISTER ===");
     }
 
     public void registerDataChanged(String nome, String cognome,
