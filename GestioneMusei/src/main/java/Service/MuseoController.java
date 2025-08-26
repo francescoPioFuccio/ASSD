@@ -3,6 +3,7 @@ package Service;
 import Entity.User;
 import Repository.UserRepository;
 import Util.MuseoSimulationService;
+import Kafka.KafkaProducerService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -21,6 +22,9 @@ public class MuseoController {
 
     @Inject
     private UserRepository userRepository;
+
+    @Inject
+    private KafkaProducerService kafkaProducer;
 
     private final Gson gson = new Gson();
 
@@ -187,6 +191,40 @@ public class MuseoController {
     }
 
     /**
+     * NUOVO: Endpoint di test per inviare musei via Kafka
+     */
+    @POST
+    @Path("/test-kafka")
+    public Response testKafkaIntegration(String requestBody) {
+        System.out.println("=== TEST KAFKA INTEGRATION ===");
+        try {
+            JSONObject request = new JSONObject(requestBody);
+
+            String userId = request.getString("userId");
+            double lat = request.getDouble("latitude");
+            double lon = request.getDouble("longitude");
+
+            // Usa il tuo servizio esistente
+            JSONObject risultato = MuseoSimulationService.trovaMuseiRaccomandati(
+                    userId, lat, lon, "", 10
+            );
+
+            // Invia via Kafka
+            kafkaProducer.sendNearbyMuseums(userId, risultato);
+
+            System.out.println("📤 Invio test completato per userId: " + userId);
+            return Response.status(Response.Status.OK)
+                    .entity("{\"message\": \"Test Kafka completato\", \"userId\": \"" + userId + "\"}")
+                    .build();
+
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
+                    .build();
+        }
+    }
+
+    /**
      * Endpoint per verificare lo stato del servizio musei
      */
     @GET
@@ -197,6 +235,7 @@ public class MuseoController {
         health.put("service", "MuseoService");
         health.put("timestamp", System.currentTimeMillis());
         health.put("message", "Servizio musei operativo e pronto a ricevere richieste");
+        health.put("kafka", "enabled");
 
         return Response.status(Response.Status.OK)
                 .entity(health.toString())
