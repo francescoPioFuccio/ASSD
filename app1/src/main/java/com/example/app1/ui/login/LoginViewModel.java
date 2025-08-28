@@ -44,7 +44,7 @@ public class LoginViewModel extends ViewModel {
     public void login(String username, String password) {
         executor.execute(() -> {
             OkHttpClient client = new OkHttpClient();
-            String url = "http://10.0.2.2:8085/gateway/api/users/login";
+            String url = "http://10.0.2.2:8085/gateway2/api/users/login";
 
             JSONObject json = new JSONObject();
             try {

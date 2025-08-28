@@ -39,5 +39,6 @@ include("GestioneMusei")
 include("GestioneNavigazione")
 include("GestioneQuest")
 include("GateWay")
-
-
+include("Gateway:Gateway2")
+findProject(":Gateway:Gateway2")?.name = "Gateway2"
+include("Gateway2")
