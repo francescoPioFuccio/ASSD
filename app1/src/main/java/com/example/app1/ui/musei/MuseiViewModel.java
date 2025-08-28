@@ -61,6 +61,7 @@ public class MuseiViewModel extends AndroidViewModel {
 
         // Costruisci l'URL con i parametri
         StringBuilder urlBuilder = new StringBuilder("http://10.0.2.2:8085/gateway/api/musei/raccomandati");
+
         urlBuilder.append("?userId=").append(userId);
         urlBuilder.append("&latitudine=").append(latitudine);
         urlBuilder.append("&longitudine=").append(longitudine);

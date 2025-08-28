@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  * Combina la logica di UserController, QuestController, OperaController e MuseoController.
  * Il path di base per tutti gli endpoint è /api.
  */
-@Path("/get")
+@Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 public class GatewayController {
 
