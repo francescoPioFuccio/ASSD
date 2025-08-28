@@ -63,7 +63,7 @@ public class RegisterViewModel extends ViewModel {
             Log.d(TAG, "✅ Password corrispondono");
 
             OkHttpClient client = new OkHttpClient();
-            String url = "http://10.0.2.2:8085/usermodule3/api/users/register";
+            String url = "http://10.0.2.2:8085/gateway/users/register";
             Log.d(TAG, "URL: " + url);
 
             JSONObject json = new JSONObject();

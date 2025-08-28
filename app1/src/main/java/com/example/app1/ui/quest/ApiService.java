@@ -15,10 +15,10 @@ import org.json.JSONObject;
 public class ApiService {
 
     private static final String TAG = "ApiService";
-    private static final String BASE_URL_QUEST = "http://10.0.2.2:8085/gestionequest/api/quest";
-    private static final String BASE_URL_OPERA = "http://10.0.2.2:8085/gestioneopere/api/opera";
+    private static final String BASE_URL_QUEST = "http://10.0.2.2:8085/gateway/api/quest";
+    private static final String BASE_URL_OPERA = "http://10.0.2.2:8085/gateway/api/opera";
     // User service (UserDataModule3) su porta 8080
-    private static final String BASE_URL_USER = "http://10.0.2.2:8085/usermodule3/api/users";
+    private static final String BASE_URL_USER = "http://10.0.2.2:8085/gateway/api/users";
 
     private static final int TIMEOUT_MS = 15000;
 
