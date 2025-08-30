@@ -19,10 +19,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.io.InputStream;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -146,40 +143,22 @@ public class GatewayController {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateProfile(@PathParam("id") Long id, User updatedUser) {
         try {
-            User existingUser = userRepository.findById(id);
-            if (existingUser == null) {
-                return Response.status(Response.Status.NOT_FOUND).entity("{\"message\": \"Utente non trovato.\"}").build();
-            }
+            String requestId = UUID.randomUUID().toString();
+            JSONObject kafkaMessage = new JSONObject();
+            kafkaMessage.put("requestId", requestId);
+            kafkaMessage.put("operation", "UPDATE_PROFILE");
+            kafkaMessage.put("userId", id);
+            kafkaMessage.put("userData", gson.toJson(updatedUser));
+            kafkaMessage.put("timestamp", System.currentTimeMillis());
 
-            if (updatedUser.getEmail() == null || updatedUser.getEmail().isEmpty() ||
-                    updatedUser.getNome() == null || updatedUser.getNome().isEmpty() ||
-                    updatedUser.getCognome() == null || updatedUser.getCognome().isEmpty()) {
-                return Response.status(Response.Status.BAD_REQUEST).entity("{\"message\": \"Email, nome e cognome sono obbligatori.\"}").build();
-            }
+            kafkaProducer.sendMessage("user-operations", requestId, kafkaMessage.toString());
 
-            if (!updatedUser.getEmail().equals(existingUser.getEmail())) {
-                User userWithSameEmail = userRepository.findByEmail(updatedUser.getEmail());
-                if (userWithSameEmail != null && !userWithSameEmail.getId().equals(id)) {
-                    return Response.status(Response.Status.CONFLICT).entity("{\"message\": \"Email già utilizzata da un altro utente.\"}").build();
-                }
-            }
-
-            existingUser.setEmail(updatedUser.getEmail());
-            existingUser.setNome(updatedUser.getNome());
-            existingUser.setCognome(updatedUser.getCognome());
-            if (updatedUser.getMuseoPreferito() != null) {
-                existingUser.setMuseoPreferito(updatedUser.getMuseoPreferito());
-            }
-
-            userRepository.save(existingUser);
-            existingUser.setPassword(null);
-            return Response.status(Response.Status.OK)
-                    .entity("{\"message\": \"Profilo aggiornato con successo!\", \"user\": " + gson.toJson(existingUser) + "}")
+            return Response.status(Response.Status.ACCEPTED)
+                    .entity("{\"message\": \"Richiesta aggiornamento profilo inviata via Kafka\", \"requestId\": \"" + requestId + "\"}")
                     .build();
-
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore interno durante l'aggiornamento: " + e.getMessage() + "\"}")
+                    .entity("{\"message\": \"Errore nell'invio via Kafka: " + e.getMessage() + "\"}")
                     .build();
         }
     }

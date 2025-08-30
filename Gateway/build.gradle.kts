@@ -9,9 +9,11 @@ version = "unspecified"
 
 
 dependencies {
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-
+    implementation(project(":UserDataModule2"))
+    implementation(project(":Kafka"))
     implementation("org.jboss.resteasy:resteasy-core:6.2.8.Final")
     implementation("org.jboss.resteasy:resteasy-servlet-initializer:6.2.8.Final")
     implementation("org.jboss.resteasy:resteasy-jackson2-provider:6.2.8.Final")
