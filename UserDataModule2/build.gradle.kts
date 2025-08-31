@@ -8,8 +8,9 @@ group = "it.unisannio.gateway"
 version = "unspecified"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(22)
+    }
 }
 
 dependencies {
@@ -31,6 +32,8 @@ dependencies {
 
     // Dipendenza per GSON per la serializzazione/deserializzazione JSON
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation(project(":Kafka"))
+    implementation(project(":Kafka"))
 }
 
 tasks.named<War>("war") {

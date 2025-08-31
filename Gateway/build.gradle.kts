@@ -23,20 +23,21 @@ dependencies {
         implementation("jakarta.inject:jakarta.inject-api:2.0.1")
         implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
         implementation("jakarta.transaction:jakarta.transaction-api:2.0.1")
+        implementation("jakarta.ejb:jakarta.ejb-api:4.0.0")
 
         // Altre dipendenze
         implementation("org.mindrot:jbcrypt:0.4")
         implementation("com.google.code.gson:gson:2.10.1")
         implementation("org.json:json:20231013")
-
         // Per multipart (questa versione potrebbe causare problemi)
         implementation("org.jboss.resteasy:resteasy-multipart-provider:6.2.4.Final")
-
+        implementation("org.apache.kafka:kafka-clients:3.6.1")
         // Le tue dipendenze di progetto
         implementation(project(":UserDataModule2"))
         implementation(project(":GestioneMusei"))
         implementation(project(":GestioneQuest"))
         implementation(project(":GestioneOpere"))
+        implementation(project(":Kafka"))
 
 
 

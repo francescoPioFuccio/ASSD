@@ -1,6 +1,8 @@
 plugins {
     id("java")
+    id("org.gradle.war")
 }
+
 
 group = "it.unisannio.gateway"
 version = "unspecified"
