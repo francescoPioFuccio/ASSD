@@ -21,10 +21,13 @@ dependencies {
 
 // Gson
     implementation("com.google.code.gson:gson:2.10.1")
-
+    implementation("org.apache.kafka:kafka-clients:3.7.0")
+    implementation(project(":Kafka"))
 // WildFly Jakarta EE (scope provided)
     compileOnly("jakarta.platform:jakarta.jakartaee-api:10.0.0")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
+
+    implementation(project(":Kafka"))
 }
 
 tasks.named<War>("war") {

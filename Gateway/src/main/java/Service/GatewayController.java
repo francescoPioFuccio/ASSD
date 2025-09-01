@@ -171,7 +171,36 @@ public class GatewayController {
                 JSONObject response = new JSONObject(responseMessage);
 
                 if ("success".equals(response.getString("status"))) {
-                    return Response.status(Response.Status.OK).entity(responseMessage).build();
+                    // Istruzioni per fare in modo che al client venga inviata solo il contenuto del payload  e non informazioni per la gestione interna
+
+                    // 1. Definiamo le chiavi "statiche" del nostro contenitore di risposta.
+                    final Set<String> staticKeys = new HashSet<>(Arrays.asList("requestId", "operation", "status"));
+
+                    String payloadKey = null;
+
+                    Iterator<String> keys = response.keys();
+                    while (keys.hasNext()) {
+                        String currentKey = keys.next();
+                        if (!staticKeys.contains(currentKey)) {
+                             payloadKey = currentKey;
+                            break;
+                        }
+                    }
+                    if (payloadKey != null) {
+                        Object payload = response.get(payloadKey);
+
+                        return Response.status(Response.Status.OK)
+                                .entity(payload.toString())
+                                .build();
+                    } else {
+                       String error = "{\"error\":\"Malformed success response from microservice: payload missing.\"}";
+                        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                                .entity(error)
+                                .build();
+                    }
+
+                    // --- FINE MODIFICA DINAMICA ---
+
                 } else {
                     return Response.status(Response.Status.BAD_REQUEST).entity(responseMessage).build();
                 }
@@ -1007,7 +1036,7 @@ public class GatewayController {
     }
 
     // SINCRONO - Dettaglio museo richiede risposta immediata
-    @GET
+   /* @GET
     @Path("/musei/dettaglio/{museoId}")
     public Response getDettaglioMuseo(
             @PathParam("museoId") String museoId,
@@ -1025,6 +1054,41 @@ public class GatewayController {
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"message\": \"Errore recupero dettagli: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }*/
+    @GET
+    @Path("/musei/dettaglio/{museoId}")
+    public Response getDettaglioMuseo(
+            @PathParam("museoId") String museoId,
+            @QueryParam("userId") String userId) {
+
+        try {
+            // Genera un ID univoco per tracciare la richiesta e la risposta
+            String requestId = UUID.randomUUID().toString();
+
+            // Costruisce il messaggio da inviare a Kafka
+            JSONObject kafkaMessage = new JSONObject();
+            kafkaMessage.put("operation", "getDettaglioMuseo");
+            kafkaMessage.put("requestId", requestId);
+            kafkaMessage.put("museoId", museoId);
+
+            // Aggiunge lo userId se presente (potrebbe essere opzionale)
+            if (userId != null && !userId.isEmpty()) {
+                kafkaMessage.put("userId", userId);
+            }
+
+            kafkaMessage.put("timestamp", System.currentTimeMillis());
+
+            // Invia la richiesta a Kafka e attende la risposta in modo bloccante (con timeout)
+            // La gestione della risposta (success/error/timeout) è centralizzata nel metodo helper.
+            return sendKafkaRequestAndWait(TOPIC_MUSEI_MODULE, "getDettaglioMuseo", kafkaMessage);
+
+        } catch (Exception e) {
+            // Gestisce eventuali errori nella creazione del messaggio Kafka
+            LOGGER.log(Level.SEVERE, "Errore nella preparazione della richiesta di dettaglio museo: " + e.getMessage(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Errore interno nel recupero dei dettagli del museo: " + e.getMessage() + "\"}")
                     .build();
         }
     }

@@ -37,6 +37,9 @@ dependencies {
 
     // Per ManagedExecutorService (raccomandato per WildFly)
     compileOnly("jakarta.enterprise.concurrent:jakarta.enterprise.concurrent-api:3.0.3")
+
+
+    implementation(project(":Kafka"))
 }
 
 tasks.named<War>("war") {

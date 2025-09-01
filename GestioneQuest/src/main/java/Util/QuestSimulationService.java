@@ -126,13 +126,13 @@ public class QuestSimulationService {
             return risultato;
         }
 
-        // Verifica se l'utente ha già una quest attiva
+        /*// Verifica se l'utente ha già una quest attiva
         JSONObject questAttive = questUtenti.get(userId);
         if (questAttive != null && questAttive.has("questAttiva")) {
             risultato.put("success", false);
             risultato.put("message", "Hai già una quest attiva. Completa quella prima di iniziarne una nuova.");
             return risultato;
-        }
+        }*/
 
         // Salva la quest come attiva per l'utente
         JSONObject questData = new JSONObject();
