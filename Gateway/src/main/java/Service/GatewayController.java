@@ -132,7 +132,7 @@ public class GatewayController {
             CompletableFuture<String> future = pendingResponses.get(requestId);
             if (future != null) {
                 future.complete(responseMessage);
-                //pendingResponses.remove(requestId);
+                pendingResponses.remove(requestId);
                 LOGGER.info("Future rimossa dalla mappa per RequestID: " + requestId);
                 LOGGER.info("Future completata per RequestID: " + requestId);
             } else {
@@ -157,7 +157,7 @@ public class GatewayController {
 
             // Aggiungiamo un'azione che rimuove la future dalla mappa QUANDO si completa (in qualsiasi modo)
             responseFuture.whenComplete((result, throwable) -> {
-                //pendingResponses.remove(requestId);
+                pendingResponses.remove(requestId);
                 LOGGER.info("Future rimossa dalla mappa per RequestID: " + requestId);
             });
 
@@ -169,7 +169,7 @@ public class GatewayController {
             try {
                 String responseMessage = responseFuture.get(ASYNC_RESPONSE_TIMEOUT, TimeUnit.SECONDS);
                 JSONObject response = new JSONObject(responseMessage);
-
+                LOGGER.info("Messaggio Kafka ricevuto completo per operazione: " + operation + " - RequestID: " + requestId + "   Contenuto: " + responseMessage);
                 if ("success".equals(response.getString("status"))) {
                     // Istruzioni per fare in modo che al client venga inviata solo il contenuto del payload  e non informazioni per la gestione interna
 
@@ -188,7 +188,7 @@ public class GatewayController {
                     }
                     if (payloadKey != null) {
                         Object payload = response.get(payloadKey);
-
+                        LOGGER.info("mess invaito al client: " + payload.toString());
                         return Response.status(Response.Status.OK)
                                 .entity(payload.toString())
                                 .build();
@@ -440,14 +440,13 @@ public class GatewayController {
             kafkaMessage.put("questId", questId);
             kafkaMessage.put("museoId", museoId);
             kafkaMessage.put("timestamp", System.currentTimeMillis());
-
-            kafkaProducer.sendMessage(TOPIC_QUEST_MODULE, requestId, kafkaMessage.toString());
-
             LOGGER.info("Messaggio Kafka inviato per iniziare quest - RequestID: " + requestId);
+            return sendKafkaRequestAndWait(TOPIC_QUEST_MODULE, "requestId", kafkaMessage);
 
-            return Response.status(Response.Status.ACCEPTED)
-                    .entity("{\"message\": \"Richiesta di inizio quest in elaborazione\", \"requestId\": \"" + requestId + "\"}")
-                    .build();
+
+
+
+            // prima si faceva return Response.status(Response.Status.OK).entity(risultato.toString()).build();
 
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)

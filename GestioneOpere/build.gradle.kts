@@ -29,6 +29,9 @@ dependencies {
     compileOnly("jakarta.platform:jakarta.jakartaee-api:10.0.0")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
 
+    implementation("org.apache.kafka:kafka-clients:3.6.1")
+    implementation("org.json:json:20231013")
+
 }
 
 tasks.named<War>("war") {

@@ -104,6 +104,9 @@ public class QuestModuleConsumer {
                 case "getStatisticheDettagliate":
                     handleGetStatisticheDettagliate(message);
                     break;
+                case "debugQuestUtente":
+                    handleDebugQuestUtente(message);
+                    break;
                 default:
                     LOGGER.warning("Operazione non riconosciuta: " + operation);
                     sendErrorResponse(requestId, "Operazione non supportata: " + operation);
@@ -113,6 +116,47 @@ public class QuestModuleConsumer {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Handler per debug delle quest utente
+     */
+    private void handleDebugQuestUtente(JSONObject message) {
+        String requestId = message.getString("requestId");
+        try {
+            String userId = message.getString("userId");
+            LOGGER.info("Debug quest utente: " + userId);
+
+            // Chiama il metodo di debug (non restituisce nulla, solo logging)
+            //QuestSimulationService.debugQuestUtente(userId);
+
+            JSONObject response = new JSONObject();
+            response.put("requestId", requestId);
+            response.put("status", "success");
+            response.put("operation", "debugQuestUtente");
+            response.put("message", "Debug eseguito - controlla i log");
+
+            sendResponse(requestId, response.toString());
+
+        } catch (Exception e) {
+            LOGGER.severe("Errore debug quest utente: " + e.getMessage());
+            sendErrorResponse(requestId, "Errore debug: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handler per reset quest di un utente specifico
+     */
+
+
+    /**
+     * Handler per reset completo del sistema quest
+     */
+
+
+    /**
+     * Gestisce la richiesta delle quest attive dell'utente
+     */
+
 
     /**
      * Gestisce la richiesta di quest disponibili per un museo
@@ -169,7 +213,7 @@ public class QuestModuleConsumer {
             response.put("requestId", requestId);
             response.put("status", "success");
             response.put("operation", "getDettaglioQuest");
-            response.put("dettaglioQuest", dettaglioQuest);
+            response.put("dettaglio", dettaglioQuest);
 
             sendResponse(requestId, response.toString());
             LOGGER.info("Dettaglio quest inviato con successo: " + questId);
@@ -201,19 +245,15 @@ public class QuestModuleConsumer {
             if (risultato.getBoolean("success")) {
                 LOGGER.info("Quest iniziata con successo: " + questId + " per user: " + userId);
 
-                // Opzionale: invia notifica di conferma
-                JSONObject notification = new JSONObject();
-                notification.put("requestId", requestId);
-                notification.put("status", "success");
-                notification.put("operation", "iniziaQuest");
-                notification.put("message", "Quest iniziata con successo!");
-                notification.put("questId", questId);
-                notification.put("userId", userId);
-                notification.put("museoId", museoId);
+                // Invia risposta di successo con payload corretto
+                JSONObject response = new JSONObject();
+                response.put("requestId", requestId);
+                response.put("status", "success");
+                response.put("operation", "iniziaQuest");
+                response.put("message", risultato.getString("message"));
+                response.put("questData", risultato); // Tutto il payload della quest
 
-                // Nota: per operazioni pure async, potresti voler inviare a un topic diverso
-                // o non inviare risposta affatto. Qui invio per consistenza.
-                sendResponse(requestId, notification.toString());
+                sendResponse(requestId, response.toString());
             } else {
                 String errorMsg = risultato.optString("message", "Errore sconosciuto nell'avvio della quest");
                 LOGGER.warning("Errore inizio quest: " + errorMsg);
@@ -245,18 +285,15 @@ public class QuestModuleConsumer {
             if (risultato.getBoolean("success")) {
                 LOGGER.info("Quest completata con successo: " + questId + " per user: " + userId);
 
-                // Invia notifica di completamento con ricompense
-                JSONObject notification = new JSONObject();
-                notification.put("requestId", requestId);
-                notification.put("status", "success");
-                notification.put("operation", "completaQuest");
-                notification.put("message", risultato.getString("message"));
-                notification.put("questId", questId);
-                notification.put("userId", userId);
-                notification.put("punteggioOttenuto", risultato.getInt("punteggioOttenuto"));
-                notification.put("ricompense", risultato.getJSONObject("ricompense"));
+                // Invia risposta di successo con struttura corretta
+                JSONObject response = new JSONObject();
+                response.put("requestId", requestId);
+                response.put("status", "success");
+                response.put("operation", "completaQuest");
+                response.put("message", risultato.getString("message"));
+                response.put("completamento", risultato); // Payload con punteggio e ricompense
 
-                sendResponse(requestId, notification.toString());
+                sendResponse(requestId, response.toString());
             } else {
                 String errorMsg = risultato.optString("message", "Errore sconosciuto nel completamento della quest");
                 LOGGER.warning("Errore completamento quest: " + errorMsg);
@@ -286,7 +323,7 @@ public class QuestModuleConsumer {
             response.put("requestId", requestId);
             response.put("status", "success");
             response.put("operation", "getStoricoQuest");
-            response.put("storicoQuest", storicoQuest);
+            response.put("storico", storicoQuest);
 
             sendResponse(requestId, response.toString());
             LOGGER.info("Storico quest inviato con successo per user: " + userId);
@@ -314,7 +351,7 @@ public class QuestModuleConsumer {
             response.put("requestId", requestId);
             response.put("status", "success");
             response.put("operation", "getMuseiVisitati");
-            response.put("museiVisitati", museiVisitati);
+            response.put("musei", museiVisitati);
 
             sendResponse(requestId, response.toString());
             LOGGER.info("Musei visitati inviati con successo per user: " + userId);
