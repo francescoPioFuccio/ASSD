@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Directory per le foto delle quest -->
+    <external-files-path
+            name="quest_images"
+            path="Pictures/" />
+
+    <!-- Directory cache per file temporanei -->
+    <cache-path
+            name="quest_cache"
+            path="quest_temp/" />
+
+    <!-- Directory interna per file dell'app -->
+    <files-path
+            name="quest_internal"
+            path="quest_files/" />
+
+</paths>

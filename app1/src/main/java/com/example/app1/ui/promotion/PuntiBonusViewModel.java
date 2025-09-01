@@ -47,7 +47,7 @@ public class PuntiBonusViewModel extends AndroidViewModel {
         Log.d("PuntiBonusViewModel", "Fetching user points for ID: " + userId);
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8080/usermodule3/api/users/" + userId;
+        String url = "http://10.0.2.2:8085/gateway/api/users/" + userId;
 
         Log.d("PuntiBonusViewModel", "User points URL: " + url);
 
@@ -72,7 +72,8 @@ public class PuntiBonusViewModel extends AndroidViewModel {
 
                     // Parsing del JSON
                     JSONObject jsonResponse = new JSONObject(responseBody);
-                    int points = jsonResponse.optInt("punti", 0);
+                    int points = jsonResponse.optInt("puntiBonus", 0);
+                    Log.d("PuntiBonusViewModel", "Punti estratti dal JSON: " + points);
                     userPoints.postValue(points);
 
                 } else {
@@ -94,7 +95,7 @@ public class PuntiBonusViewModel extends AndroidViewModel {
         Log.d("PuntiBonusViewModel", "Fetching promotions...");
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8080/usermodule3/api/users/promozioni";
+        String url = "http://10.0.2.2:8085/gateway/api/users/promozioni";
         Log.d("PuntiBonusViewModel", "Promotions URL: " + url);
 
         Request request = new Request.Builder()

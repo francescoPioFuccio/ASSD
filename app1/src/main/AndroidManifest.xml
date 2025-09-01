@@ -1,9 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permessi -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-feature
+            android:name="android.hardware.camera"
+            android:required="false"/>
+    <uses-feature
+            android:name="android.hardware.camera.autofocus"
+            android:required="false"/>
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.REORDER_TASKS"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission
+            android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+            android:maxSdkVersion="28"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/> <!-- AGGIUNGI QUESTO BLOCCO -->
+    <queries>
+
+        <!-- Questo permette alla tua app di "vedere" le app che sanno come scattare foto -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE"/>
+        </intent>
+    </queries>
 
     <application
             android:allowBackup="true"
@@ -14,52 +38,76 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.MuseoApp">
         <activity
-                android:name=".ui.musei.MuseiActivity"
-                android:exported="false" />
+                android:name=".ui.storia.HistoryActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".ui.storia.QuestHIstoryActivity"
+                android:exported="false"/>
+        <activity
+                android:name=".ui.quest.QuestActivity"
+                android:exported="false"
+                android:parentActivityName=".ui.home.HomeActivity"
+                android:screenOrientation="portrait"
+                android:theme="@style/Theme.MuseoApp"/>
         <activity
                 android:name=".ui.navigation.NavigationActivity"
-                android:exported="false" /> <!-- Google Maps API Key -->
+                android:exported="false"
+                android:screenOrientation="portrait"/>
+
         <meta-data
                 android:name="com.google.android.geo.API_KEY"
-                android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg" />
+                android:value="AIzaSyD8XnxeACZF7k1quxQuLqil754t-Ltqnhg"/>
+        <meta-data
+                android:name="com.google.android.gms.ads.APPLICATION_ID"
+                android:value="ca-app-pub-3940256099942544~3347511713"/>
 
         <activity
                 android:name=".ui.chat.ChatActivity"
                 android:exported="false"
                 android:label="Chat AI Arte"
                 android:parentActivityName=".ui.home.HomeActivity"
-                android:theme="@style/Theme.MuseoApp" />
+                android:theme="@style/Theme.MuseoApp"/>
         <activity
                 android:name=".ui.settings.SettingsActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.promotion.PuntiBonusActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.profile.ProfileActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.home.HomeActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.login.StartActivity"
                 android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
         <activity
                 android:name=".ui.login.RegisterActivity"
-                android:exported="false" />
+                android:exported="false"/>
         <activity
                 android:name=".ui.login.LoginActivity"
                 android:exported="false"
-                android:label="@string/title_activity_login" />
+                android:label="@string/title_activity_login"/>
         <activity
                 android:name=".MainActivity"
-                android:exported="false" />
+                android:exported="false"/>
+
+        <provider
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="com.example.app1.fileprovider"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/file_paths"/>
+        </provider>
     </application>
 
 </manifest>

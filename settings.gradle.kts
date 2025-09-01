@@ -20,16 +20,14 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "MuseoApp"
-include(":app")
-include(":UserDataModule")
 include(":app1")
 include("UserDataModule2")
-include("ChatBotService")
-include("app1:ChatBot")
-findProject(":app1:ChatBot")?.name = "ChatBot"
-include("app1:ChatBot")
-findProject(":app1:ChatBot")?.name = "ChatBot"
-include("ChatBot")
 include("GestioneOpere")
-include("GameService")
-include("MuseumService")
+include("GestioneOpere:GestioneMusei")
+findProject(":GestioneOpere:GestioneMusei")?.name = "GestioneMusei"
+include("GestioneMusei")
+include("GestioneNavigazione")
+include("GestioneQuest")
+include("Gateway")
+include("Kafka")
+

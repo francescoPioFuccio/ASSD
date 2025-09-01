@@ -17,15 +17,14 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.app1.R;
 import com.example.app1.ui.home.HomeActivity;
-import com.example.app1.ui.login.LoginViewModel;
 import com.example.app1.ui.login.LoginViewModelFactory;
 import com.example.app1.databinding.ActivityLoginBinding;
 import com.example.app1.util.ThemeHelper;
@@ -34,7 +33,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private LoginViewModel loginViewModel;
     private ActivityLoginBinding binding;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         ThemeHelper.applyTheme(this);
@@ -42,13 +40,12 @@ public class LoginActivity extends AppCompatActivity {
 
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);
 
-        final EditText usernameEditText = binding.username;
-        final EditText passwordEditText = binding.password;
-        final Button loginButton = binding.login;
+        final EditText usernameEditText = (EditText) binding.username;
+        final EditText passwordEditText = (EditText) binding.password;
+        final Button loginButton = (Button) binding.login;
         final ProgressBar loadingProgressBar = binding.loading;
 
         loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
@@ -58,6 +55,7 @@ public class LoginActivity extends AppCompatActivity {
                     return;
                 }
                 loginButton.setEnabled(loginFormState.isDataValid());
+                
                 if (loginFormState.getUsernameError() != null) {
                     usernameEditText.setError(getString(loginFormState.getUsernameError()));
                 }
@@ -111,13 +109,19 @@ public class LoginActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String username = usernameEditText.getText() != null ? usernameEditText.getText().toString().trim() : "";
+                String password = passwordEditText.getText() != null ? passwordEditText.getText().toString().trim() : "";
+                
+                if (username.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(LoginActivity.this, "Inserisci email e password", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
                 loadingProgressBar.setVisibility(View.VISIBLE);
-                loginViewModel.login(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString());
+                loginViewModel.login(username, password);
             }
         });
     }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -127,6 +131,30 @@ public class LoginActivity extends AppCompatActivity {
     private void updateUiWithUser(LoggedInUserView model) {
         String displayName = model.getDisplayName();
         String userId = model.getUserId();
+
+        // Sincronizza le preferenze se disponibili
+        if (model.getPreferenzeSync() != null) {
+            android.content.SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+            android.content.SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("preferenze_musei", model.getPreferenzeSync());
+            editor.apply();
+            
+            android.util.Log.d("LoginActivity", "Preferenze sincronizzate: " + model.getPreferenzeSync());
+        }
+
+        // Salva l'userId anche nelle SharedPreferences specifiche lette da QuestActivity
+        if (userId != null && !userId.isEmpty()) {
+            getSharedPreferences("user", MODE_PRIVATE)
+                    .edit()
+                    .putString("userId", userId)
+                    .apply();
+
+            // Mantieni anche la copia già usata altrove
+            getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    .edit()
+                    .putString("userid", userId)
+                    .apply();
+        }
 
         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
         intent.putExtra("username", displayName);

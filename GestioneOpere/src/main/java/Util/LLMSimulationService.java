@@ -2,10 +2,8 @@ package Util;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import java.util.Random;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+
+import java.util.*;
 
 public class LLMSimulationService {
 
@@ -35,53 +33,7 @@ public class LLMSimulationService {
     /**
      * Simula l'analisi di un'immagine da parte del servizio LLM
      */
-    public static JSONObject analizzaImmagine(String imageBase64, String nomeFile, String userId, String descrizione) {
-        System.out.println("🖼️ Simulazione analisi immagine: " + nomeFile);
 
-        // Simulazione di delay per processing dell'immagine (1-3 secondi)
-        try {
-            Thread.sleep(random.nextInt(2000) + 1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        JSONObject risultato = new JSONObject();
-
-        // Simula l'esito dell'analisi (70% positive, 30% negative)
-        boolean approved = random.nextDouble() > 0.3;
-
-        risultato.put("success", true);
-        risultato.put("approved", approved);
-        risultato.put("confidence", Math.round((random.nextDouble() * 0.3 + 0.7) * 100.0) / 100.0); // 70-100%
-        risultato.put("timestamp", System.currentTimeMillis());
-
-        if (approved) {
-            risultato.put("message", "✅ L'immagine è stata approvata!");
-            risultato.put("reason", generaMotivoApprovazione());
-            risultato.put("suggerimenti", generaSuggerimentiPositivi());
-        } else {
-            risultato.put("message", "❌ L'immagine non soddisfa i criteri richiesti.");
-            risultato.put("reason", generaMotivoRifiuto());
-            risultato.put("suggerimenti", generaSuggerimentiMiglioramento());
-        }
-
-        // Aggiungi dettagli tecnici simulati
-        JSONObject dettagliTecnici = new JSONObject();
-        dettagliTecnici.put("risoluzione", simulaRisoluzione());
-        dettagliTecnici.put("formato", estraiFormato(nomeFile));
-        dettagliTecnici.put("dimensione", simulaDimensioneFile());
-        dettagliTecnici.put("qualita", random.nextInt(3) == 0 ? "alta" : "media");
-
-        risultato.put("dettagliTecnici", dettagliTecnici);
-
-        // Se è presente una descrizione, aggiungila all'analisi
-        if (descrizione != null && !descrizione.isEmpty()) {
-            risultato.put("descrizioneUtente", descrizione);
-            risultato.put("matchDescrizione", random.nextBoolean());
-        }
-
-        return risultato;
-    }
 
     /**
      * Simula il recupero di informazioni su un'opera d'arte
@@ -322,4 +274,273 @@ public class LLMSimulationService {
         return "È un argomento molto interessante! L'arte ha sempre qualcosa da raccontarci. " +
                 "Potresti essere più specifico sulla tua domanda? Così posso aiutarti meglio.";
     }
+
+    // Database simulato delle opere d'arte con caratteristiche per il riconoscimento
+    private static final Map<String, JSONObject> DATABASE_OPERE = initializeDatabaseOpere();
+
+    /**
+     * Analizza un'immagine inviata dall'utente per verificare se corrisponde a un'opera d'arte
+     */
+    public static JSONObject analizzaImmagine (String base64Image, String fileName,String userId, String descrizioneQuest) {
+        System.out.println("🖼️ Simulazione analisi immagine per utente: " + userId);
+        System.out.println("📝 Descrizione quest: " + descrizioneQuest);
+
+        // Simulazione delay di analisi AI
+        try {
+            Thread.sleep(random.nextInt(2000) + 1000); // 1-3 secondi
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        JSONObject risultato = new JSONObject();
+
+        // Simulazione analisi basata sulla descrizione della quest
+        boolean questApprovata = simulaAnalisiOpera(descrizioneQuest, fileName);
+
+        risultato.put("success", true);
+        risultato.put("userId", userId);
+        risultato.put("fileName", fileName);
+        risultato.put("questApprovata", questApprovata);
+
+        if (questApprovata) {
+            risultato.put("message", "🎉 Quest completata! L'opera è stata riconosciuta correttamente.");
+            risultato.put("status", "APPROVATA");
+            risultato.put("punteggioBonus", random.nextInt(50) + 25); // Bonus 25-75 punti
+
+            // Dettagli dell'opera riconosciuta
+            JSONObject operaRiconosciuta = trovaOperaPerDescrizione(descrizioneQuest);
+            if (operaRiconosciuta != null) {
+                risultato.put("operaDettagli", operaRiconosciuta);
+            }
+
+        } else {
+            risultato.put("message", "❌ Quest non approvata. L'immagine non corrisponde all'opera cercata.");
+            risultato.put("status", "NON_APPROVATA");
+            risultato.put("suggerimento", generaSuggerimento(descrizioneQuest));
+        }
+
+        // Informazioni tecniche dell'analisi (simulate)
+        JSONObject analisiTecnica = new JSONObject();
+        analisiTecnica.put("confidenzaRiconoscimento", questApprovata ?
+                (85 + random.nextInt(15)) : (20 + random.nextInt(40)));
+        analisiTecnica.put("caratteristicheRilevate", generaCaratteristicheRilevate(questApprovata));
+        analisiTecnica.put("tempoAnalisi", 1500 + random.nextInt(1000));
+
+        risultato.put("analisiTecnica", analisiTecnica);
+        risultato.put("timestamp", System.currentTimeMillis());
+
+        System.out.println("🎯 Risultato analisi: " + (questApprovata ? "APPROVATA" : "NON APPROVATA"));
+
+        return risultato;
+    }
+
+    /**
+     * Simula l'analisi di un'opera basata sulla descrizione della quest
+     */
+    private static boolean simulaAnalisiOpera(String descrizioneQuest, String fileName) {
+        /*if (descrizioneQuest == null || descrizioneQuest.trim().isEmpty()) {
+            return random.nextBoolean(); // 50% possibilità se non c'è descrizione
+        }
+
+        String desc = descrizioneQuest.toLowerCase();
+
+        // Opere molto famose - alta probabilità di successo
+        if (desc.contains("gioconda") || desc.contains("mona lisa")) {
+            return random.nextInt(100) < 85; // 85% successo
+        }
+
+        if (desc.contains("ultima cena") || desc.contains("leonardo")) {
+            return random.nextInt(100) < 80; // 80% successo
+        }
+
+        if (desc.contains("venere") || desc.contains("botticelli")) {
+            return random.nextInt(100) < 75; // 75% successo
+        }
+
+        if (desc.contains("notte stellata") || desc.contains("van gogh")) {
+            return random.nextInt(100) < 70; // 70% successo
+        }
+
+        // Opere scientifiche/storiche
+        if (desc.contains("t-rex") || desc.contains("dinosauro") || desc.contains("fossile")) {
+            return random.nextInt(100) < 75; // 75% successo
+        }
+
+        if (desc.contains("rosetta") || desc.contains("geroglifico")) {
+            return random.nextInt(100) < 70; // 70% successo
+        }
+
+        if (desc.contains("armatura") || desc.contains("cavaliere")) {
+            return random.nextInt(100) < 65; // 65% successo
+        }
+
+        // Quest generiche - probabilità media
+        if (desc.contains("mistero") || desc.contains("nascosta") || desc.contains("tesoro")) {
+            return random.nextInt(100) < 60; // 60% successo
+        }*/
+
+        // Default - probabilità moderata
+        return random.nextInt(100) < 80; // 55% successo
+    }
+
+    /**
+     * Trova i dettagli di un'opera basata sulla descrizione della quest
+     */
+    private static JSONObject trovaOperaPerDescrizione(String descrizioneQuest) {
+        if (descrizioneQuest == null) return null;
+
+        String desc = descrizioneQuest.toLowerCase();
+
+        // Cerca nell'database delle opere
+        for (JSONObject opera : DATABASE_OPERE.values()) {
+            String nomeOpera = opera.optString("nome", "").toLowerCase();
+            String autore = opera.optString("autore", "").toLowerCase();
+
+            if (desc.contains(nomeOpera) || desc.contains(autore)) {
+                return opera;
+            }
+        }
+
+        // Se non trovata, genera opera generica
+        JSONObject operaGenerica = new JSONObject();
+        operaGenerica.put("nome", "Opera d'Arte");
+        operaGenerica.put("autore", "Artista Riconosciuto");
+        operaGenerica.put("periodo", "Periodo Artistico");
+        operaGenerica.put("tecnica", "Tecnica Artistica");
+        operaGenerica.put("dimensioni", "Dimensioni Standard");
+
+        return operaGenerica;
+    }
+
+    /**
+     * Genera un suggerimento per aiutare l'utente quando la quest non è approvata
+     */
+    private static String generaSuggerimento(String descrizioneQuest) {
+        if (descrizioneQuest == null) {
+            return "Assicurati di fotografare l'opera corretta seguendo le indicazioni della quest.";
+        }
+
+        String[] suggerimenti = {
+                "Prova a fotografare l'opera da una angolazione diversa, assicurandoti che sia ben illuminata.",
+                "Avvicinati di più all'opera per catturare maggiori dettagli.",
+                "Controlla di star fotografando l'opera giusta seguendo gli indizi forniti.",
+                "Assicurati che l'immagine sia nitida e che l'opera sia completamente visibile.",
+                "Cerca la targa informativa vicino all'opera per confermare che sia quella corretta."
+        };
+
+        return suggerimenti[random.nextInt(suggerimenti.length)];
+    }
+
+    /**
+     * Genera caratteristiche rilevate dall'analisi (simulate)
+     */
+    private static JSONArray generaCaratteristicheRilevate(boolean successo) {
+        JSONArray caratteristiche = new JSONArray();
+
+        if (successo) {
+            String[] caratteristichePositive = {
+                    "Opera d'arte riconosciuta",
+                    "Corrispondenza colori corretta",
+                    "Composizione artistica identificata",
+                    "Stile artistico confermato",
+                    "Dettagli caratteristici presenti",
+                    "Proporzioni corrette"
+            };
+
+            // Aggiungi 2-4 caratteristiche positive
+            Set<String> selezionate = new HashSet<>();
+            int numCaratteristiche = 2 + random.nextInt(3);
+
+            while (selezionate.size() < numCaratteristiche) {
+                selezionate.add(caratteristichePositive[random.nextInt(caratteristichePositive.length)]);
+            }
+
+            for (String car : selezionate) {
+                caratteristiche.put(car);
+            }
+
+        } else {
+            String[] caratteristicheNegative = {
+                    "Opera non corrispondente",
+                    "Immagine non chiara",
+                    "Elementi artistici non riconosciuti",
+                    "Stile non conforme",
+                    "Dettagli insufficienti",
+                    "Angolazione non ottimale"
+            };
+
+            caratteristiche.put(caratteristicheNegative[random.nextInt(caratteristicheNegative.length)]);
+            caratteristiche.put(caratteristicheNegative[random.nextInt(caratteristicheNegative.length)]);
+        }
+
+        return caratteristiche;
+    }
+
+    /**
+     * Inizializza il database delle opere d'arte per il riconoscimento
+     */
+    private static Map<String, JSONObject> initializeDatabaseOpere() {
+        Map<String, JSONObject> database = new HashMap<>();
+
+        // Opere famose
+        database.put("gioconda", creaOpera(
+                "Gioconda", "Leonardo da Vinci", "1503-1519",
+                "Olio su tavola di pioppo", "77 x 53 cm", "Rinascimento"
+        ));
+
+        database.put("ultima_cena", creaOpera(
+                "L'Ultima Cena", "Leonardo da Vinci", "1495-1498",
+                "Tempera grassa e olio su intonaco", "460 x 880 cm", "Rinascimento"
+        ));
+
+        database.put("nascita_venere", creaOpera(
+                "La Nascita di Venere", "Sandro Botticelli", "1484-1486",
+                "Tempera su tela", "172,5 x 278,9 cm", "Rinascimento"
+        ));
+
+        database.put("notte_stellata", creaOpera(
+                "La Notte Stellata", "Vincent van Gogh", "1889",
+                "Olio su tela", "73,7 x 92,1 cm", "Post-Impressionismo"
+        ));
+
+        // Reperti scientifici/storici
+        database.put("stele_rosetta", creaOpera(
+                "Stele di Rosetta", "Antico Egitto", "196 a.C.",
+                "Granodiorite", "114 x 72 x 28 cm", "Archeologico"
+        ));
+
+        database.put("t_rex", creaOpera(
+                "Scheletro di Tyrannosaurus Rex", "Paleontologia", "68-66 milioni di anni fa",
+                "Fossile", "12,3 x 4 metri", "Paleontologico"
+        ));
+
+        return database;
+    }
+
+    private static JSONObject creaOpera(String nome, String autore, String periodo,
+                                        String tecnica, String dimensioni, String categoria) {
+        JSONObject opera = new JSONObject();
+        opera.put("nome", nome);
+        opera.put("autore", autore);
+        opera.put("periodo", periodo);
+        opera.put("tecnica", tecnica);
+        opera.put("dimensioni", dimensioni);
+        opera.put("categoria", categoria);
+        opera.put("dataInserimento", System.currentTimeMillis());
+
+        return opera;
+    }
+
+    /**
+     * Metodo per testare il servizio
+     */
+    public static JSONObject testAnalisi() {
+        return analizzaImmagine(
+                "base64_test_image",
+                "test.jpg",
+                "user123",
+                "Cerca la Gioconda di Leonardo da Vinci"
+        );
+    }
+
 }

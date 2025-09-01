@@ -24,7 +24,7 @@ public class ChatViewModel extends AndroidViewModel {
 
     private String conversationId = null;
     private final OkHttpClient client = new OkHttpClient();
-    private static final String BASE_URL = "http://10.0.2.2:8080/gestioneopere/api/opera";
+    private static final String BASE_URL = "http://10.0.2.2:8085/gateway/api/opera";
 
     public ChatViewModel(Application application) {
         super(application);

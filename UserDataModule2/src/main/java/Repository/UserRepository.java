@@ -62,4 +62,14 @@ public class UserRepository {
             em.remove(user); // Se trovato, eliminalo
         }
     }
+
+    @Transactional
+    public void addUpdatePuntiBonus(User user) {
+            em.merge(user); // Esegui il merge per aggiornare l'entità
+    }
+
+    @Transactional
+    public void removeUpdatePuntiBonus(User user) {
+        em.merge(user); // Esegui il merge per aggiornare l'entità
+    }
 }

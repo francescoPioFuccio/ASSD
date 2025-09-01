@@ -1,82 +1,198 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".ui.navigation.NavigationActivity">
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="16dp"
+              android:background="#F5F5F5">
 
-    <!-- Header con informazioni destinazione -->
+    <!-- Header con bottone indietro -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="#6200EE"
-        android:padding="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Navigazione"
-            android:textSize="24sp"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:id="@+id/destinationTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Caricamento destinazione..."
-            android:textSize="16sp"
-            android:textColor="@android:color/white"
-            android:layout_marginBottom="8dp" />
-
-        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
 
-            <Button
-                android:id="@+id/startNavigationButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Avvia Navigazione"
-                android:backgroundTint="@android:color/white"
-                android:textColor="#6200EE"
-                android:layout_marginEnd="8dp"
-                android:enabled="false" />
-
-            <Button
+        <ImageButton
                 android:id="@+id/backButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_revert"
+                android:contentDescription="Torna indietro"
+                android:tint="@android:color/holo_blue_dark" />
+
+        <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Indietro"
-                android:backgroundTint="#FF5722"
-                android:textColor="@android:color/white"
-                android:layout_marginStart="8dp" />
+                android:text="Navigazione"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:gravity="center" />
 
-        </LinearLayout>
+        <View
+                android:layout_width="48dp"
+                android:layout_height="48dp" />
 
     </LinearLayout>
 
-    <!-- Mappa -->
-    <fragment
-        android:id="@+id/mapFragment"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+    <!-- Informazioni destinazione -->
+    <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
 
-    <!-- Loading indicator -->
-    <ProgressBar
-        android:id="@+id/loadingProgressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="32dp"
-        android:visibility="gone" />
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Destinazione"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_marginBottom="8dp" />
+
+            <TextView
+                    android:id="@+id/museoNomeTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nome Museo"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/black"
+                    android:layout_marginBottom="4dp" />
+
+            <TextView
+                    android:id="@+id/museoIndirizzoTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Indirizzo del museo"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Status navigazione -->
+    <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+            <TextView
+                    android:id="@+id/statusTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Inizializzazione..."
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/holo_blue_dark"
+                    android:gravity="center"
+                    android:layout_marginBottom="12dp" />
+
+            <TextView
+                    android:id="@+id/currentLocationTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Posizione: Rilevamento in corso..."
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_marginBottom="4dp" />
+
+            <TextView
+                    android:id="@+id/distanceTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Distanza: Calcolo in corso..."
+                    android:textSize="14sp"
+                    android:textColor="@android:color/darker_gray" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Bottoni azione -->
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
+
+        <Button
+                android:id="@+id/openMapsButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Apri Google Maps"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:background="@drawable/button_primary_background"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="12dp"
+                android:drawableLeft="@android:drawable/ic_dialog_map"
+                android:drawablePadding="8dp"
+                android:gravity="center" />
+
+        <Button
+                android:id="@+id/stopNavigationButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Interrompi Navigazione"
+                android:textSize="14sp"
+                android:background="@drawable/button_secondary_background"
+                android:textColor="@android:color/holo_red_dark"
+                android:drawableLeft="@android:drawable/ic_menu_close_clear_cancel"
+                android:drawablePadding="8dp"
+                android:gravity="center" />
+
+        <!-- Nuovo pulsante aggiunto -->
+        <Button
+                android:id="@+id/museumQuestButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Quest del museo"
+                android:textSize="14sp"
+                android:background="@drawable/button_secondary_background"
+                android:textColor="@android:color/holo_blue_dark"
+                android:drawableLeft="@android:drawable/ic_menu_help"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:layout_marginTop="12dp" />
+
+    </LinearLayout>
+
+    <!-- Spacer per spingere il contenuto verso l'alto -->
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+    <!-- Informazioni aggiuntive -->
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="La navigazione si interromperà automaticamente quando raggiungerai la destinazione"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:padding="8dp" />
 
 </LinearLayout>

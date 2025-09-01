@@ -1,0 +1,144 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # SERVIZIO MYSQL (IL TUO DATABASE)
+  # -------------------------------------------------------------
+  mysql_db:
+    image: mysql:8.0
+    container_name: museoapp-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: _ASSDproject
+      MYSQL_DATABASE: luca3
+      MYSQL_USER: luca
+      MYSQL_PASSWORD: luca
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-log:/var/lib/zookeeper/log
+    networks:
+      - app_network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://host.docker.internal:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - app_network
+
+  # Modulo: UserDataModule2
+  userdatamodule2_backend:
+    build:
+      context: ./UserDataModule2
+      dockerfile: Dockerfile
+    container_name: museoapp-userdatamodule2
+    ports:
+      - "8088:8085"
+    environment:
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_NAME: luca3
+      DB_USER: luca
+      DB_PASSWORD: luca
+    depends_on:
+      - mysql_db
+    networks:
+      - app_network
+
+  # Modulo: GestioneMusei
+  gestionemusei_backend:
+    build:
+      context: ./GestioneMusei
+      dockerfile: Dockerfile
+    container_name: museoapp-gestionemusei
+    ports:
+      - "8087:8085"
+    environment:
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_NAME: luca3
+      DB_USER: luca
+      DB_PASSWORD: luca
+    depends_on:
+      - mysql_db
+    networks:
+      - app_network
+
+  # Modulo: GestioneOpere
+  gestioneopere_backend:
+    build:
+      context: ./GestioneOpere
+      dockerfile: Dockerfile
+    container_name: museoapp-gestioneopere
+    ports:
+      - "8086:8085"
+    environment:
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_NAME: luca3
+      DB_USER: luca
+      DB_PASSWORD: luca
+    depends_on:
+      - mysql_db
+    networks:
+      - app_network
+
+  # Modulo: GestioneQuest
+  gestionequest_backend:
+    build:
+      context: ./GestioneQuest
+      dockerfile: Dockerfile
+    container_name: museoapp-gestionequest
+    ports:
+      - "8089:8085"
+    environment:
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_NAME: luca3
+      DB_USER: luca
+      DB_PASSWORD: luca
+    depends_on:
+      - mysql_db
+    networks:
+      - app_network
+
+# -------------------------------------------------------------
+# DEFINIZIONE DEI VOLUMI E DEL NETWORK
+# -------------------------------------------------------------
+volumes: # <-- QUESTA SEZIONE DEVE ESSERE QUI E ALLINEATA A SINISTRA
+  mysql_data:
+  zookeeper-data:
+  zookeeper-log:
+  kafka-data:
+
+networks: # <-- QUESTA SEZIONE DEVE ESSERE QUI E ALLINEATA A SINISTRA
+  app_network:
+    driver: bridge

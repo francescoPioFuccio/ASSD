@@ -28,9 +28,9 @@
             android:icon="@drawable/ic_chatbot" />
 
         <item
-            android:id="@+id/nav_info"
-            android:title="Informazioni"
-            android:icon="@drawable/ic_info" />
+            android:id="@+id/nav_musei"
+            android:title="Musei"
+            android:icon="@drawable/ic_museum" />
 
         <item
             android:id="@+id/nav_logout"

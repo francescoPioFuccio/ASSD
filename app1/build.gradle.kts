@@ -40,34 +40,43 @@ android {
 
 dependencies {
 
-    // Google Maps
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
-    implementation("com.google.android.gms:play-services-location:21.0.1")
-    // Per le chiamate HTTP (se non l'hai già)
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.annotation)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel:2.7.0")
+    dependencies {
 
-    // Dipendenze aggiunte per Retrofit e GSON Converter (sintassi Kotlin DSL corretta)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0") // <-- Corretto
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation(libs.androidx.preference) // <-- Corretto
+        // ----- CORE ANDROIDX & UI -----
+        implementation(libs.androidx.core.ktx)
+        implementation(libs.androidx.appcompat)
+        implementation(libs.material)
+        implementation(libs.androidx.activity)
+        implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+        implementation(libs.androidx.annotation)
+        implementation(libs.androidx.lifecycle.livedata.ktx)
+        implementation(libs.androidx.lifecycle.viewmodel.ktx)
+        implementation("androidx.lifecycle:lifecycle-viewmodel:2.7.0")
+        implementation("androidx.preference:preference:1.2.0")
 
-    // Dipendenza per androidx.preference
-    implementation("androidx.preference:preference:1.2.0")
-    implementation("com.google.android.gms:play-services-maps:18.2.0")
-    implementation("com.google.android.gms:play-services-location:21.0.1")
+        // ----- NAVIGATION -----
+        implementation("androidx.navigation:navigation-fragment:2.7.7")
+        implementation("androidx.navigation:navigation-ui:2.7.7")
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+        // ----- GOOGLE SERVICES -----
+        implementation("com.google.android.gms:play-services-maps:18.2.0")
+        implementation("com.google.android.gms:play-services-location:21.0.1")
+
+        // ----- NETWORK -----
+        // Client HTTP principale. Usato da ApiService e da Retrofit.
+        implementation("com.squareup.okhttp3:okhttp:4.12.0")
+        // Retrofit (layer di astrazione sopra OkHttp, non è in conflitto)
+        implementation("com.squareup.retrofit2:retrofit:2.9.0")
+        implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+        // ----- TESTING -----
+        implementation(libs.mediation.test.suite)
+        testImplementation(libs.junit)
+        androidTestImplementation(libs.androidx.junit)
+        androidTestImplementation(libs.androidx.espresso.core)
+    }
 }
