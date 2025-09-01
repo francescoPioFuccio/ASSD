@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp"
+        tools:context=".ui.musei.MuseiActivity">
+
+    <!-- Toolbar opzionale -->
+    <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            app:title="Musei Disponibili"
+            app:titleTextColor="@android:color/white" />
+
+    <!-- Titolo -->
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="Musei nella tua zona"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+    <!-- RecyclerView per i musei -->
+    <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewMusei"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            tools:listitem="@layout/item_museo" />
+
+</LinearLayout>
