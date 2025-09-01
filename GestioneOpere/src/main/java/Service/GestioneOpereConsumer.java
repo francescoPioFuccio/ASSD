@@ -1,58 +1,56 @@
 package Service;
 
-import Util.LLMSimulationService;
-import kafka_impl.KafkaConsumerService;
 import kafka_impl.KafkaProducerService;
-
+import kafka_impl.KafkaConsumerService;
+import Util.LLMSimulationService;
 import org.json.JSONObject;
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.Startup;
+import jakarta.ejb.Singleton;
+
 import java.time.Duration;
+import java.util.Base64;
 import java.util.Collections;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Consumer Kafka per il modulo Gestione Opere
- * Ascolta il topic "gestioneOpere" e gestisce le operazioni relative alle opere d'arte
+ * Consumer Kafka per il modulo GestioneOpere
+ * Gestisce le operazioni asincrone relative alle opere d'arte e LLM
  */
+@Singleton
+@Startup
 public class GestioneOpereConsumer {
 
     private static final Logger LOGGER = Logger.getLogger(GestioneOpereConsumer.class.getName());
+    private static final String TOPIC_OPERE_MODULE = "gestioneOpere";
+    private static final String TOPIC_RESPONSE = "gateway-responses";
 
-    // Topics Kafka
-    private static final String TOPIC_OPERE_INPUT = "gestioneOpere";
-    private static final String TOPIC_GATEWAY_RESPONSE = "gateway-responses";
-
-    private KafkaConsumerService consumer;
-    private KafkaProducerService producer;
+    private KafkaConsumerService kafkaConsumer;
+    private KafkaProducerService kafkaProducer;
     private volatile boolean running = false;
 
-    public GestioneOpereConsumer() {
-        this.consumer = new KafkaConsumerService("gestione-opere-group", "latest");
-        this.producer = new KafkaProducerService();
+    @PostConstruct
+    public void init() {
+        this.kafkaConsumer = new KafkaConsumerService("gestioneopere-group", "earliest");
+        this.kafkaProducer = new KafkaProducerService();
+        startListening();
     }
 
-    /**
-     * Avvia il consumer per ascoltare i messaggi dal topic gestioneOpere
-     */
-    public void start() {
+    public void startListening() {
         if (running) {
-            LOGGER.warning("GestioneOpereConsumer è già in esecuzione");
             return;
         }
 
         running = true;
-        consumer.consumer.subscribe(Collections.singletonList(TOPIC_OPERE_INPUT));
-
-        LOGGER.info("GestioneOpereConsumer avviato - Topic: " + TOPIC_OPERE_INPUT);
-
         Thread consumerThread = new Thread(() -> {
+            kafkaConsumer.consumer.subscribe(Collections.singletonList(TOPIC_OPERE_MODULE));
+            LOGGER.info("GestioneOpere Consumer avviato - Topic: " + TOPIC_OPERE_MODULE);
+
             while (running) {
                 try {
-                    var records = consumer.consumer.poll(Duration.ofMillis(500));
-
+                    var records = kafkaConsumer.consumer.poll(Duration.ofMillis(500));
                     for (var record : records) {
                         try {
-                            LOGGER.info("Messaggio ricevuto: " + record.value());
                             processMessage(record.value());
                         } catch (Exception e) {
                             LOGGER.severe("Errore elaborazione messaggio: " + e.getMessage());
@@ -60,7 +58,8 @@ public class GestioneOpereConsumer {
                         }
                     }
                 } catch (Exception e) {
-                    LOGGER.severe("Errore nel polling consumer opere: " + e.getMessage());
+                    LOGGER.severe("Errore nel polling Kafka: " + e.getMessage());
+                    // Breve pausa prima di riprovare
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException ie) {
@@ -73,223 +72,216 @@ public class GestioneOpereConsumer {
 
         consumerThread.setDaemon(false);
         consumerThread.start();
+        LOGGER.info("Thread Consumer Kafka avviato per GestioneOpere");
     }
 
-    /**
-     * Processa i messaggi ricevuti dal topic Kafka
-     */
-    private void processMessage(String message) {
+    private void processMessage(String messageValue) {
         try {
-            JSONObject request = new JSONObject(message);
-            String operation = request.getString("operation");
-            String requestId = request.getString("requestId");
+            JSONObject message = new JSONObject(messageValue);
+            String operation = message.getString("operation");
+            String requestId = message.getString("requestId");
 
-            LOGGER.info("Processando operazione: " + operation + " (RequestID: " + requestId + ")");
-
-            JSONObject response = new JSONObject();
-            response.put("requestId", requestId);
-            response.put("operation", operation);
+            LOGGER.info("GestioneOpere ricevuto: " + operation + " (RequestID: " + requestId + ")");
 
             switch (operation) {
                 case "processaDomanda":
-                    handleProcessaDomanda(request, response);
+                    handleProcessaDomanda(message);
                     break;
-
                 case "processaChat":
-                    handleProcessaChat(request, response);
+                    handleProcessaChat(message);
                     break;
-
                 case "analizzaImmagine":
-                    handleAnalizzaImmagine(request, response);
+                    handleAnalizzaImmagine(message);
                     break;
-
+                case "getInfoOpera":
+                    handleGetInfoOpera(message);
+                    break;
                 default:
-                    LOGGER.warning("Operazione non supportata: " + operation);
-                    response.put("status", "error");
-                    response.put("message", "Operazione non supportata: " + operation);
+                    LOGGER.warning("Operazione non riconosciuta: " + operation);
+                    sendErrorResponse(message.getString("requestId"), "Operazione non supportata: " + operation);
             }
-
-            // Invia la risposta al gateway
-            sendResponseToGateway(response);
-
         } catch (Exception e) {
-            LOGGER.severe("Errore processamento messaggio: " + e.getMessage());
+            LOGGER.severe("Errore parsing messaggio Kafka: " + e.getMessage());
             e.printStackTrace();
-
-            // Invia risposta di errore se possibile
-            try {
-                JSONObject errorResponse = new JSONObject();
-                JSONObject originalRequest = new JSONObject(message);
-                errorResponse.put("requestId", originalRequest.optString("requestId", "unknown"));
-                errorResponse.put("operation", originalRequest.optString("operation", "unknown"));
-                errorResponse.put("status", "error");
-                errorResponse.put("message", "Errore interno del servizio: " + e.getMessage());
-
-                sendResponseToGateway(errorResponse);
-            } catch (Exception ex) {
-                LOGGER.severe("Impossibile inviare risposta di errore: " + ex.getMessage());
-            }
         }
     }
 
     /**
-     * Gestisce l'operazione di processare una domanda LLM
+     * Gestisce le domande inviate al servizio LLM
      */
-    private void handleProcessaDomanda(JSONObject request, JSONObject response) {
+    private void handleProcessaDomanda(JSONObject message) {
+        String requestId = message.getString("requestId");
         try {
-            String domanda = request.getString("domanda");
-            String userId = request.optString("userId", null);
+            String domanda = message.getString("domanda");
+            String userId = message.optString("userId", null);
 
-            LOGGER.info("Processando domanda per utente " + userId + ": " + domanda);
+            LOGGER.info("Processando domanda LLM: " + domanda + " per utente: " + userId);
 
-            // Chiama il servizio LLM per processare la domanda
+            // Invoca il servizio LLM
             String rispostaLLM = LLMSimulationService.processaDomanda(domanda, userId);
 
-            // Costruisce la risposta di successo
+            // Crea la risposta di successo
+            JSONObject response = new JSONObject();
+            response.put("requestId", requestId);
             response.put("status", "success");
+            response.put("operation", "processaDomanda");
             response.put("risposta", rispostaLLM);
-            response.put("domanda", domanda);
-            response.put("userId", userId);
+            response.put("domandaOriginale", domanda);
             response.put("timestamp", System.currentTimeMillis());
 
-            LOGGER.info("Domanda processata con successo per RequestID: " + request.getString("requestId"));
+            sendResponse(requestId, response.toString());
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Errore processamento domanda", e);
-            response.put("status", "error");
-            response.put("message", "Errore nel processamento della domanda: " + e.getMessage());
+            LOGGER.severe("Errore processing domanda: " + e.getMessage());
+            sendErrorResponse(requestId, "Errore interno durante l'elaborazione della domanda: " + e.getMessage());
         }
     }
 
     /**
-     * Gestisce l'operazione di chat con il LLM
+     * Gestisce le conversazioni chat con il servizio LLM
      */
-    private void handleProcessaChat(JSONObject request, JSONObject response) {
+    private void handleProcessaChat(JSONObject message) {
+        String requestId = message.getString("requestId");
         try {
-            String messaggio = request.getString("messaggio");
-            String userId = request.optString("userId", null);
-            String conversationId = request.optString("conversationId", null);
+            String messaggio = message.getString("messaggio");
+            String userId = message.optString("userId", null);
+            String conversationId = message.optString("conversationId", null);
 
-            LOGGER.info("Processando chat per utente " + userId + " (conversation: " + conversationId + ")");
+            LOGGER.info("Processando chat: " + messaggio + " per utente: " + userId + " conversazione: " + conversationId);
 
-            // Chiama il servizio LLM per la chat
-            JSONObject chatResponse = LLMSimulationService.processaChat(messaggio, userId, conversationId);
+            // Invoca il servizio LLM per la chat
+            JSONObject chatResult = LLMSimulationService.processaChat(messaggio, userId, conversationId);
 
-            // Costruisce la risposta di successo
+            // Crea la risposta di successo
+            JSONObject response = new JSONObject();
+            response.put("requestId", requestId);
             response.put("status", "success");
-            response.put("chatResponse", chatResponse);
-            response.put("userId", userId);
-            response.put("timestamp", System.currentTimeMillis());
+            response.put("operation", "processaChat");
+            response.put("chatResult", chatResult);
 
-            LOGGER.info("Chat processata con successo per RequestID: " + request.getString("requestId"));
+            sendResponse(requestId, response.toString());
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Errore processamento chat", e);
-            response.put("status", "error");
-            response.put("message", "Errore nel processamento della chat: " + e.getMessage());
+            LOGGER.severe("Errore processing chat: " + e.getMessage());
+            sendErrorResponse(requestId, "Errore interno durante l'elaborazione della chat: " + e.getMessage());
         }
     }
 
     /**
-     * Gestisce l'operazione di analisi immagine
+     * Gestisce l'analisi delle immagini inviate dall'utente
      */
-    private void handleAnalizzaImmagine(JSONObject request, JSONObject response) {
+    private void handleAnalizzaImmagine(JSONObject message) {
+        String requestId = message.getString("requestId");
         try {
-            String base64Image = request.getString("base64Image");
-            String fileName = request.getString("fileName");
-            String userId = request.getString("userId");
-            String descrizione = request.optString("descrizione", "");
+            String base64Image = message.getString("base64Image");
+            String fileName = message.getString("fileName");
+            String userId = message.optString("userId", null);
+            String descrizione = message.optString("descrizione", "");
 
-            LOGGER.info("Analizzando immagine " + fileName + " per utente " + userId);
+            LOGGER.info("Analizzando immagine: " + fileName + " per utente: " + userId);
 
-            // Chiama il servizio LLM per analizzare l'immagine
-            JSONObject analisiResponse = LLMSimulationService.analizzaImmagine(
-                    base64Image, fileName, userId, descrizione
-            );
+            // Validazione dimensione immagine decodificata
+            try {
+                byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+                if (imageBytes.length > 10 * 1024 * 1024) { // 10MB limit
+                    sendErrorResponse(requestId, "Immagine troppo grande (limite 10MB)");
+                    return;
+                }
+            } catch (IllegalArgumentException e) {
+                sendErrorResponse(requestId, "Formato immagine Base64 non valido");
+                return;
+            }
 
-            // Costruisce la risposta di successo
+            // Invoca il servizio LLM per l'analisi dell'immagine
+            JSONObject analisiResult = LLMSimulationService.analizzaImmagine(base64Image, fileName, userId, descrizione);
+
+            // Crea la risposta di successo
+            JSONObject response = new JSONObject();
+            response.put("requestId", requestId);
             response.put("status", "success");
-            response.put("analisiResult", analisiResponse);
-            response.put("userId", userId);
-            response.put("fileName", fileName);
-            response.put("timestamp", System.currentTimeMillis());
+            response.put("operation", "analizzaImmagine");
+            response.put("analisiResult", analisiResult);
 
-            LOGGER.info("Analisi immagine completata per RequestID: " + request.getString("requestId"));
+            sendResponse(requestId, response.toString());
 
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Errore analisi immagine", e);
-            response.put("status", "error");
-            response.put("message", "Errore nell'analisi dell'immagine: " + e.getMessage());
+            LOGGER.severe("Errore analisi immagine: " + e.getMessage());
+            sendErrorResponse(requestId, "Errore interno durante l'analisi dell'immagine: " + e.getMessage());
         }
     }
 
     /**
-     * Invia la risposta al gateway tramite Kafka
+     * Gestisce le richieste di informazioni su opere specifiche
      */
-    private void sendResponseToGateway(JSONObject response) {
+    private void handleGetInfoOpera(JSONObject message) {
+        String requestId = message.getString("requestId");
         try {
-            String requestId = response.getString("requestId");
-            producer.sendMessage(TOPIC_GATEWAY_RESPONSE, requestId, response.toString());
+            String operaId = message.getString("operaId");
+            String userId = message.optString("userId", null);
 
-            LOGGER.info("Risposta inviata al gateway per RequestID: " + requestId);
-            LOGGER.info("Contenuto risposta: " + response.toString());
+            LOGGER.info("Recuperando info opera: " + operaId + " per utente: " + userId);
+
+            // Invoca il servizio per ottenere le informazioni dell'opera
+            JSONObject infoOpera = LLMSimulationService.getInfoOpera(operaId, userId);
+
+            // Crea la risposta di successo
+            JSONObject response = new JSONObject();
+            response.put("requestId", requestId);
+            response.put("status", "success");
+            response.put("operation", "getInfoOpera");
+            response.put("infoOpera", infoOpera);
+
+            sendResponse(requestId, response.toString());
 
         } catch (Exception e) {
-            LOGGER.severe("Errore invio risposta al gateway: " + e.getMessage());
+            LOGGER.severe("Errore recupero info opera: " + e.getMessage());
+            sendErrorResponse(requestId, "Errore interno durante il recupero delle informazioni dell'opera: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Invia una risposta di successo via Kafka
+     */
+    private void sendResponse(String requestId, String responseMessage) {
+        try {
+            kafkaProducer.sendMessage(TOPIC_RESPONSE, requestId, responseMessage);
+            LOGGER.info("Risposta inviata via Kafka - RequestID: " + requestId);
+        } catch (Exception e) {
+            LOGGER.severe("Errore invio risposta Kafka: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * Ferma il consumer
+     * Invia una risposta di errore via Kafka
+     */
+    private void sendErrorResponse(String requestId, String errorMessage) {
+        try {
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("requestId", requestId);
+            errorResponse.put("status", "error");
+            errorResponse.put("message", errorMessage);
+            errorResponse.put("timestamp", System.currentTimeMillis());
+
+            kafkaProducer.sendMessage(TOPIC_RESPONSE, requestId, errorResponse.toString());
+            LOGGER.warning("Risposta di errore inviata - RequestID: " + requestId + ", Error: " + errorMessage);
+        } catch (Exception e) {
+            LOGGER.severe("Errore invio risposta di errore: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Ferma il consumer quando l'applicazione viene terminata
      */
     public void stop() {
-        LOGGER.info("Fermando GestioneOpereConsumer...");
         running = false;
-
-        if (consumer != null) {
-            consumer.close();
+        if (kafkaConsumer != null) {
+            kafkaConsumer.close();
         }
-        if (producer != null) {
-            producer.close();
+        if (kafkaProducer != null) {
+            kafkaProducer.close();
         }
-
-        LOGGER.info("GestioneOpereConsumer fermato");
-    }
-
-    /**
-     * Verifica se il consumer è in esecuzione
-     */
-    public boolean isRunning() {
-        return running;
-    }
-
-    /**
-     * Main method per testare il consumer in standalone
-     */
-    public static void main(String[] args) {
-        GestioneOpereConsumer consumer = new GestioneOpereConsumer();
-
-        // Aggiungi shutdown hook per chiusura pulita
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.info("Shutdown hook attivato, fermando consumer...");
-            consumer.stop();
-        }));
-
-        try {
-            consumer.start();
-            LOGGER.info("GestioneOpereConsumer avviato. Premere Ctrl+C per fermare.");
-
-            // Mantieni il processo attivo
-            Thread.currentThread().join();
-
-        } catch (InterruptedException e) {
-            LOGGER.info("Consumer interrotto");
-            consumer.stop();
-        } catch (Exception e) {
-            LOGGER.severe("Errore avvio consumer: " + e.getMessage());
-            e.printStackTrace();
-            consumer.stop();
-        }
+        LOGGER.info("GestioneOpere Consumer fermato");
     }
 }

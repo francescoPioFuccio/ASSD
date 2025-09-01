@@ -12,6 +12,7 @@ public class LLMSimulationService {
 
     /**
      * Simula una chiamata al servizio LLM per processare una domanda
+     * Restituisce direttamente la risposta senza messaggi intermedi
      */
     public static String processaDomanda(String domanda, String userId) {
         System.out.println("📡 Simulazione chiamata LLM per domanda: " + domanda);
@@ -29,11 +30,6 @@ public class LLMSimulationService {
         System.out.println("🤖 Risposta LLM generata: " + risposta);
         return risposta;
     }
-
-    /**
-     * Simula l'analisi di un'immagine da parte del servizio LLM
-     */
-
 
     /**
      * Simula il recupero di informazioni su un'opera d'arte
@@ -87,10 +83,17 @@ public class LLMSimulationService {
     }
 
     /**
-     * Simula una conversazione chat con il LLM
+     * Simula una conversazione chat con il LLM - RESTITUISCE DIRETTAMENTE LA RISPOSTA FINALE
      */
     public static JSONObject processaChat(String messaggio, String userId, String conversationId) {
         System.out.println("💬 Simulazione chat - Messaggio: " + messaggio);
+
+        // Simulazione delay di elaborazione
+        try {
+            Thread.sleep(random.nextInt(300) + 100);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
         // Se non esiste conversationId, creane uno nuovo
         if (conversationId == null || conversationId.isEmpty()) {
@@ -120,7 +123,7 @@ public class LLMSimulationService {
         // Salva la cronologia aggiornata
         conversazioni.put(conversationId, cronologia);
 
-        // Crea la risposta
+        // RESTITUISCE DIRETTAMENTE LA RISPOSTA FINALE SENZA MESSAGGI INTERMEDI
         JSONObject response = new JSONObject();
         response.put("success", true);
         response.put("conversationId", conversationId);
@@ -130,11 +133,66 @@ public class LLMSimulationService {
         return response;
     }
 
+    /**
+     * Analizza un'immagine inviata dall'utente - RESTITUISCE DIRETTAMENTE IL RISULTATO FINALE
+     */
+    public static JSONObject analizzaImmagine(String base64Image, String fileName, String userId, String descrizioneQuest) {
+        System.out.println("🖼️ Simulazione analisi immagine per utente: " + userId);
+        System.out.println("📝 Descrizione quest: " + descrizioneQuest);
+
+        // Simulazione delay di analisi AI (ridotto per evitare attese)
+        try {
+            Thread.sleep(random.nextInt(1000) + 500); // 0.5-1.5 secondi
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        JSONObject risultato = new JSONObject();
+
+        // Simulazione analisi basata sulla descrizione della quest
+        boolean questApprovata = simulaAnalisiOpera(descrizioneQuest, fileName);
+
+        risultato.put("success", true);
+        risultato.put("userId", userId);
+        risultato.put("fileName", fileName);
+        risultato.put("questApprovata", questApprovata);
+
+        if (questApprovata) {
+            risultato.put("message", "Quest completata! L'opera è stata riconosciuta correttamente.");
+            risultato.put("status", "APPROVATA");
+            risultato.put("punteggioBonus", random.nextInt(50) + 25); // Bonus 25-75 punti
+
+            // Dettagli dell'opera riconosciuta
+            JSONObject operaRiconosciuta = trovaOperaPerDescrizione(descrizioneQuest);
+            if (operaRiconosciuta != null) {
+                risultato.put("operaDettagli", operaRiconosciuta);
+            }
+
+        } else {
+            risultato.put("message", "Quest non approvata. L'immagine non corrisponde all'opera cercata.");
+            risultato.put("status", "NON_APPROVATA");
+            risultato.put("suggerimento", generaSuggerimento(descrizioneQuest));
+        }
+
+        // Informazioni tecniche dell'analisi (simulate)
+        JSONObject analisiTecnica = new JSONObject();
+        analisiTecnica.put("confidenzaRiconoscimento", questApprovata ?
+                (85 + random.nextInt(15)) : (20 + random.nextInt(40)));
+        analisiTecnica.put("caratteristicheRilevate", generaCaratteristicheRilevate(questApprovata));
+        analisiTecnica.put("tempoAnalisi", 500 + random.nextInt(500)); // Ridotto il tempo
+
+        risultato.put("analisiTecnica", analisiTecnica);
+        risultato.put("timestamp", System.currentTimeMillis());
+
+        System.out.println("🎯 Risultato analisi: " + (questApprovata ? "APPROVATA" : "NON_APPROVATA"));
+
+        return risultato;
+    }
+
     // === METODI AUSILIARI ===
 
     private static String generaRispostaContestuale(String domanda) {
         String domandaLower = domanda.toLowerCase();
-
 
         if (domandaLower.contains("gioconda")) {
             return "La Gioconda, anche conosciuta come Monna Lisa, è uno dei dipinti più famosi al mondo, realizzato da Leonardo da Vinci. " +
@@ -170,60 +228,6 @@ public class LLMSimulationService {
         return "Interessante domanda! Basandomi sulla mia conoscenza artistica, " +
                 "posso dirti che quest'opera rappresenta un importante esempio del suo periodo storico. " +
                 "Hai altre curiosità specifiche?";
-    }
-
-    private static String generaMotivoApprovazione() {
-        String[] motivi = {
-                "L'immagine presenta una buona qualità e inquadratura",
-                "La composizione è ben bilanciata e l'illuminazione appropriata",
-                "L'opera è chiaramente visibile e riconoscibile",
-                "I colori sono fedeli e la messa a fuoco è ottimale"
-        };
-        return motivi[random.nextInt(motivi.length)];
-    }
-
-    private static String generaMotivoRifiuto() {
-        String[] motivi = {
-                "L'immagine risulta sfocata o di bassa qualità",
-                "L'inquadratura non cattura completamente l'opera",
-                "L'illuminazione è insufficiente o crea riflessi",
-                "L'opera non è chiaramente riconoscibile"
-        };
-        return motivi[random.nextInt(motivi.length)];
-    }
-
-    private static JSONArray generaSuggerimentiPositivi() {
-        JSONArray suggerimenti = new JSONArray();
-        suggerimenti.put("Ottima foto! Potresti condividerla nella galleria community");
-        suggerimenti.put("Considera di aggiungere una descrizione personale");
-        suggerimenti.put("Questa immagine potrebbe essere utilizzata per una guida virtuale");
-        return suggerimenti;
-    }
-
-    private static JSONArray generaSuggerimentiMiglioramento() {
-        JSONArray suggerimenti = new JSONArray();
-        suggerimenti.put("Prova a scattare con una migliore illuminazione");
-        suggerimenti.put("Assicurati che l'opera sia completamente inquadrata");
-        suggerimenti.put("Evita riflessi e ombre che possono alterare i colori");
-        suggerimenti.put("Mantieni la fotocamera ferma per evitare mosso");
-        return suggerimenti;
-    }
-
-    private static String simulaRisoluzione() {
-        String[] risoluzioni = {"1920x1080", "1280x720", "3840x2160", "2560x1440"};
-        return risoluzioni[random.nextInt(risoluzioni.length)];
-    }
-
-    private static String estraiFormato(String nomeFile) {
-        if (nomeFile.contains(".")) {
-            return nomeFile.substring(nomeFile.lastIndexOf(".") + 1).toUpperCase();
-        }
-        return "JPG";
-    }
-
-    private static String simulaDimensioneFile() {
-        double size = 0.5 + (random.nextDouble() * 4.5); // 0.5-5 MB
-        return String.format("%.1f MB", size);
     }
 
     private static String generaDescrizioneOpera(String titolo, String artista) {
@@ -269,118 +273,17 @@ public class LLMSimulationService {
                     "C'è qualcosa di specifico che vorresti approfondire?";
         }
 
-
         // Risposta generica ma friendly
         return "È un argomento molto interessante! L'arte ha sempre qualcosa da raccontarci. " +
                 "Potresti essere più specifico sulla tua domanda? Così posso aiutarti meglio.";
-    }
-
-    // Database simulato delle opere d'arte con caratteristiche per il riconoscimento
-    private static final Map<String, JSONObject> DATABASE_OPERE = initializeDatabaseOpere();
-
-    /**
-     * Analizza un'immagine inviata dall'utente per verificare se corrisponde a un'opera d'arte
-     */
-    public static JSONObject analizzaImmagine (String base64Image, String fileName,String userId, String descrizioneQuest) {
-        System.out.println("🖼️ Simulazione analisi immagine per utente: " + userId);
-        System.out.println("📝 Descrizione quest: " + descrizioneQuest);
-
-        // Simulazione delay di analisi AI
-        try {
-            Thread.sleep(random.nextInt(2000) + 1000); // 1-3 secondi
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        JSONObject risultato = new JSONObject();
-
-        // Simulazione analisi basata sulla descrizione della quest
-        boolean questApprovata = simulaAnalisiOpera(descrizioneQuest, fileName);
-
-        risultato.put("success", true);
-        risultato.put("userId", userId);
-        risultato.put("fileName", fileName);
-        risultato.put("questApprovata", questApprovata);
-
-        if (questApprovata) {
-            risultato.put("message", "🎉 Quest completata! L'opera è stata riconosciuta correttamente.");
-            risultato.put("status", "APPROVATA");
-            risultato.put("punteggioBonus", random.nextInt(50) + 25); // Bonus 25-75 punti
-
-            // Dettagli dell'opera riconosciuta
-            JSONObject operaRiconosciuta = trovaOperaPerDescrizione(descrizioneQuest);
-            if (operaRiconosciuta != null) {
-                risultato.put("operaDettagli", operaRiconosciuta);
-            }
-
-        } else {
-            risultato.put("message", "❌ Quest non approvata. L'immagine non corrisponde all'opera cercata.");
-            risultato.put("status", "NON_APPROVATA");
-            risultato.put("suggerimento", generaSuggerimento(descrizioneQuest));
-        }
-
-        // Informazioni tecniche dell'analisi (simulate)
-        JSONObject analisiTecnica = new JSONObject();
-        analisiTecnica.put("confidenzaRiconoscimento", questApprovata ?
-                (85 + random.nextInt(15)) : (20 + random.nextInt(40)));
-        analisiTecnica.put("caratteristicheRilevate", generaCaratteristicheRilevate(questApprovata));
-        analisiTecnica.put("tempoAnalisi", 1500 + random.nextInt(1000));
-
-        risultato.put("analisiTecnica", analisiTecnica);
-        risultato.put("timestamp", System.currentTimeMillis());
-
-        System.out.println("🎯 Risultato analisi: " + (questApprovata ? "APPROVATA" : "NON APPROVATA"));
-
-        return risultato;
     }
 
     /**
      * Simula l'analisi di un'opera basata sulla descrizione della quest
      */
     private static boolean simulaAnalisiOpera(String descrizioneQuest, String fileName) {
-        /*if (descrizioneQuest == null || descrizioneQuest.trim().isEmpty()) {
-            return random.nextBoolean(); // 50% possibilità se non c'è descrizione
-        }
-
-        String desc = descrizioneQuest.toLowerCase();
-
-        // Opere molto famose - alta probabilità di successo
-        if (desc.contains("gioconda") || desc.contains("mona lisa")) {
-            return random.nextInt(100) < 85; // 85% successo
-        }
-
-        if (desc.contains("ultima cena") || desc.contains("leonardo")) {
-            return random.nextInt(100) < 80; // 80% successo
-        }
-
-        if (desc.contains("venere") || desc.contains("botticelli")) {
-            return random.nextInt(100) < 75; // 75% successo
-        }
-
-        if (desc.contains("notte stellata") || desc.contains("van gogh")) {
-            return random.nextInt(100) < 70; // 70% successo
-        }
-
-        // Opere scientifiche/storiche
-        if (desc.contains("t-rex") || desc.contains("dinosauro") || desc.contains("fossile")) {
-            return random.nextInt(100) < 75; // 75% successo
-        }
-
-        if (desc.contains("rosetta") || desc.contains("geroglifico")) {
-            return random.nextInt(100) < 70; // 70% successo
-        }
-
-        if (desc.contains("armatura") || desc.contains("cavaliere")) {
-            return random.nextInt(100) < 65; // 65% successo
-        }
-
-        // Quest generiche - probabilità media
-        if (desc.contains("mistero") || desc.contains("nascosta") || desc.contains("tesoro")) {
-            return random.nextInt(100) < 60; // 60% successo
-        }*/
-
-        // Default - probabilità moderata
-        return random.nextInt(100) < 80; // 55% successo
+        // Default - probabilità alta di successo per test
+        return random.nextInt(100) < 80; // 80% successo
     }
 
     /**
@@ -476,6 +379,9 @@ public class LLMSimulationService {
         return caratteristiche;
     }
 
+    // Database simulato delle opere d'arte con caratteristiche per il riconoscimento
+    private static final Map<String, JSONObject> DATABASE_OPERE = initializeDatabaseOpere();
+
     /**
      * Inizializza il database delle opere d'arte per il riconoscimento
      */
@@ -542,5 +448,4 @@ public class LLMSimulationService {
                 "Cerca la Gioconda di Leonardo da Vinci"
         );
     }
-
 }

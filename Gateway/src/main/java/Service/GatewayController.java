@@ -30,12 +30,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import jakarta.enterprise.context.ApplicationScoped;
 /**
  * Gateway Controller con gestione completa dei messaggi asincroni Kafka
  * Include listener per le risposte dai moduli
  */
-
+@ApplicationScoped
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 
@@ -132,7 +132,7 @@ public class GatewayController {
             CompletableFuture<String> future = pendingResponses.get(requestId);
             if (future != null) {
                 future.complete(responseMessage);
-                pendingResponses.remove(requestId);
+                //pendingResponses.remove(requestId);
                 LOGGER.info("Future rimossa dalla mappa per RequestID: " + requestId);
                 LOGGER.info("Future completata per RequestID: " + requestId);
             } else {
@@ -518,9 +518,7 @@ public class GatewayController {
 
             LOGGER.info("Messaggio Kafka inviato per domanda LLM - RequestID: " + requestId);
 
-            return Response.status(Response.Status.ACCEPTED)
-                    .entity("{\"message\": \"Domanda in elaborazione\", \"requestId\": \"" + requestId + "\"}")
-                    .build();
+            return sendKafkaRequestAndWait(TOPIC_OPERE_MODULE, "processaChat", kafkaMessage);
 
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -550,13 +548,10 @@ public class GatewayController {
             kafkaMessage.put("conversationId", conversationId);
             kafkaMessage.put("timestamp", System.currentTimeMillis());
 
-            kafkaProducer.sendMessage(TOPIC_OPERE_MODULE, requestId, kafkaMessage.toString());
+
 
             LOGGER.info("Messaggio Kafka inviato per chat - RequestID: " + requestId);
-
-            return Response.status(Response.Status.ACCEPTED)
-                    .entity("{\"message\": \"Chat in elaborazione\", \"requestId\": \"" + requestId + "\"}")
-                    .build();
+            return sendKafkaRequestAndWait(TOPIC_OPERE_MODULE, "processaChat", kafkaMessage);
 
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -609,13 +604,12 @@ public class GatewayController {
             kafkaMessage.put("descrizione", descrizione);
             kafkaMessage.put("timestamp", System.currentTimeMillis());
 
-            kafkaProducer.sendMessage(TOPIC_OPERE_MODULE, requestId, kafkaMessage.toString());
+            //kafkaProducer.sendMessage(TOPIC_OPERE_MODULE, requestId, kafkaMessage.toString());
 
             LOGGER.info("Messaggio Kafka inviato per analisi foto - RequestID: " + requestId);
 
-            return Response.status(Response.Status.ACCEPTED)
-                    .entity("{\"message\": \"Analisi foto in elaborazione\", \"requestId\": \"" + requestId + "\"}")
-                    .build();
+
+            return sendKafkaRequestAndWait(TOPIC_OPERE_MODULE, "analizzaImmagine", kafkaMessage);
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Errore analisi foto", e);

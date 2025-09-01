@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":UserDataModule2"))
     implementation(project(":Kafka"))
     implementation("org.jboss.resteasy:resteasy-core:6.2.8.Final")
+    implementation("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
     implementation("org.jboss.resteasy:resteasy-servlet-initializer:6.2.8.Final")
     implementation("org.jboss.resteasy:resteasy-jackson2-provider:6.2.8.Final")
 
