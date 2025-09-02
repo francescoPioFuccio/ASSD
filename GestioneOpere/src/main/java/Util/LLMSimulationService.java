@@ -283,7 +283,8 @@ public class LLMSimulationService {
      */
     private static boolean simulaAnalisiOpera(String descrizioneQuest, String fileName) {
         // Default - probabilità alta di successo per test
-        return random.nextInt(100) < 80; // 80% successo
+        //return random.nextInt(100) < 80; // 80% successo
+        return true;
     }
 
     /**
