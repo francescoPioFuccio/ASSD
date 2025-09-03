@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.*;
 
+import static org.jboss.resteasy.plugins.providers.multipart.i18n.LogMessages.LOGGER;
+
 public class QuestSimulationService {
 
     private static final Random random = new Random();
@@ -178,6 +180,7 @@ public class QuestSimulationService {
         int punteggioTotale = calcolaPunteggio(questId, tempoCompletamento);
 
         // Salva nel storico con informazione del museo
+        LOGGER.info("Salvataggio quest nello storico per utente: " + userId + ", quest: " + questId + ", museo:----------------------------------------------------------------------- " + museoId);
         salvaQuestNelloStorico(userId, questId, museoId, punteggioTotale, tempoCompletamento);
 
         // Rimuovi quest attiva

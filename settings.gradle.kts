@@ -20,7 +20,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "MuseoApp"
-include(":app1")
+//include(":app1")
 include("UserDataModule2")
 include("GestioneOpere")
 include("GestioneOpere:GestioneMusei")

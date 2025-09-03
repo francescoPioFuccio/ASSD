@@ -41,9 +41,6 @@
                 android:name=".ui.storia.HistoryActivity"
                 android:exported="false"/>
         <activity
-                android:name=".ui.storia.QuestHIstoryActivity"
-                android:exported="false"/>
-        <activity
                 android:name=".ui.quest.QuestActivity"
                 android:exported="false"
                 android:parentActivityName=".ui.home.HomeActivity"

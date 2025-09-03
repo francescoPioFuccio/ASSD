@@ -115,10 +115,38 @@ public class ProfileViewModel extends AndroidViewModel {
                         String responseBody = response.body().string();
                         Log.d("ProfileViewModel", "Update response: " + responseBody);
 
-                        JSONObject jsonResponse = new JSONObject(responseBody);
-                        if (jsonResponse.has("user")) {
-                            JSONObject updatedUser = jsonResponse.getJSONObject("user");
-                            profileData.postValue(updatedUser);
+                        // ✅ GESTISCI ENTRAMBI I CASI: JSON o stringa semplice
+                        try {
+                            // Prova prima a parsare come JSON
+                            JSONObject jsonResponse = new JSONObject(responseBody);
+
+                            if (jsonResponse.has("user")) {
+                                JSONObject updatedUser = jsonResponse.getJSONObject("user");
+                                profileData.postValue(updatedUser);
+                            }
+
+                            String message = jsonResponse.optString("message", "Profilo aggiornato con successo!");
+                            successMessage.postValue(message);
+
+                        } catch (JSONException e) {
+                            // ✅ Se non è un JSON, è una stringa semplice
+                            Log.d("ProfileViewModel", "Response is a simple string, not JSON");
+
+                            // ✅ AGGIORNA I DATI LOCALMENTE dato che il server ha confermato il successo
+                            JSONObject updatedData = new JSONObject();
+                            updatedData.put("nome", nome);
+                            updatedData.put("cognome", cognome);
+                            updatedData.put("email", email);
+                            updatedData.put("id", userId);
+                            if (preferenze != null) {
+                                updatedData.put("museoPreferito", preferenze);
+                            }
+
+                            // ✅ Aggiorna la UI con i nuovi dati
+                            profileData.postValue(updatedData);
+
+                            // Usa la stringa di risposta come messaggio di successo
+                            successMessage.postValue(responseBody);
                         }
 
                         // Sincronizza le preferenze con SharedPreferences locali
@@ -128,19 +156,18 @@ public class ProfileViewModel extends AndroidViewModel {
                                 if (i > 0) preferencesString.append(",");
                                 preferencesString.append(preferenze.getString(i));
                             }
-                            
+
                             // Salva nelle SharedPreferences per sincronizzare con i musei
                             android.content.SharedPreferences prefs = getApplication().getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE);
                             android.content.SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("preferenze_musei", preferencesString.toString());
                             editor.apply();
-                            
+
                             Log.d("ProfileViewModel", "Preferenze sincronizzate nelle SharedPreferences: " + preferencesString.toString());
                         }
 
-                        String message = jsonResponse.optString("message", "Profilo aggiornato con successo!");
-                        successMessage.postValue(message);
                     } else {
+                        // ✅ LEGGI IL BODY UNA SOLA VOLTA ANCHE PER GLI ERRORI
                         String responseBody = response.body() != null ? response.body().string() : "";
                         Log.e("ProfileViewModel", "Errore nell'aggiornamento: " + response.code() + " - " + responseBody);
 

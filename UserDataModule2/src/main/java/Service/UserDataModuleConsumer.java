@@ -133,7 +133,7 @@ public class UserDataModuleConsumer {
             String userId = message.getString("userId");
             int punti = message.getInt("punti");
 
-            User user = userRepository.findById(Long.parseLong(userId));
+            User user = userRepository.findById((Long) Long.parseLong(userId));
             if (user == null) {
                 sendErrorResponse(requestId, "Utente non trovato con ID: " + userId);
                 return;
@@ -166,7 +166,7 @@ public class UserDataModuleConsumer {
             String userId = message.getString("userId");
             int punti = message.getInt("punti");
 
-            User user = userRepository.findById(Long.parseLong(userId));
+            User user = userRepository.findById((Long) Long.parseLong(userId));
             if (user == null) {
                 sendErrorResponse(requestId, "Utente non trovato.");
                 return;
@@ -202,7 +202,7 @@ public class UserDataModuleConsumer {
         String requestId = message.getString("requestId");
         try {
             String userId = message.getString("userId");
-            User user = userRepository.findById(Long.parseLong(userId));
+            User user = userRepository.findById((Long) Long.parseLong(userId));
 
             JSONObject response = new JSONObject();
             response.put("requestId", requestId);
@@ -280,7 +280,7 @@ public class UserDataModuleConsumer {
             String userId = message.getString("userId");
             JSONObject updatedUserJson = message.getJSONObject("updatedUser");
 
-            User existingUser = userRepository.findById(Long.parseLong(userId));
+            User existingUser = userRepository.findById((Long) Long.parseLong(userId));
             if (existingUser == null) {
                 sendErrorResponse(requestId, "Utente non trovato.");
                 return;

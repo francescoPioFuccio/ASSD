@@ -178,6 +178,12 @@ public class QuestViewModel extends ViewModel {
 
                 // Comunica il risultato dell'analisi
                 quest.setCompletata(questApprovata);
+                // In caso di non approvazione, assicurati che la quest non sia marcata come completata e sia disponibile
+                if (!questApprovata) {
+                    quest.setCompletata(false);
+                    quest.setDisponibile(true);
+                    updateQuestStatus(quest.getIdQuest(), quest.isAttiva(), false, true);
+                }
                 questAnalysisResult.postValue(quest);
 
             } catch (Exception e) {
