@@ -4,6 +4,13 @@ import Entity.SimulazionePromozione;
 import Entity.User;
 import Repository.UserRepository;
 import Util.*;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
+import it.unisannio.opere.grpc.GetInfoOperaRequest;
+import it.unisannio.opere.grpc.GetInfoOperaResponse;
+import it.unisannio.opere.grpc.OpereServiceGrpc;
+import jakarta.annotation.PreDestroy;
 import kafka_impl.KafkaProducerService;
 import kafka_impl.KafkaConsumerService;
 
@@ -49,7 +56,10 @@ public class GatewayController {
     private static final String TOPIC_OPERE_MODULE = "gestioneOpere";
     private static final String TOPIC_MUSEI_MODULE = "gestioneMusei";
     private static final String TOPIC_RESPONSE = "gateway-responses";
-
+    private static final String OPERE_GRPC_HOST = "localhost";
+    private static final int OPERE_GRPC_PORT = 50052;
+    private ManagedChannel opereGrpcChannel;
+    private OpereServiceGrpc.OpereServiceBlockingStub opereGrpcStub;
     // Timeout per risposte asincrone (in secondi)
     private static final int ASYNC_RESPONSE_TIMEOUT = 30;
 
@@ -67,12 +77,32 @@ public class GatewayController {
 
 
     public GatewayController() {
-        this.kafkaProducer = new KafkaProducerService();
-        this.responseConsumer = new KafkaConsumerService("gateway-response-group", "earliest");
-        startResponseListener();
+        //this.kafkaProducer = new KafkaProducerService();
+        //this.responseConsumer = new KafkaConsumerService("gateway-response-group", "earliest");
+        //startResponseListener();
         // Inizializza il consumer solo se necessario
     }
 
+    @PostConstruct
+    public void init() {
+        try {
+            // Inizializzazione di Kafka
+            this.kafkaProducer = new KafkaProducerService();
+            this.responseConsumer = new KafkaConsumerService("gateway-response-group", "earliest");
+            startResponseListener(); // Avvia il thread del consumer Kafka
+            LOGGER.info("Kafka Producer/Consumer and Response Listener initialized successfully.");
+
+            // Inizializzazione del client gRPC
+            this.opereGrpcChannel = ManagedChannelBuilder.forAddress(OPERE_GRPC_HOST, OPERE_GRPC_PORT)
+                    .usePlaintext() // Per sviluppo. Usare TLS in produzione.
+                    .build();
+            this.opereGrpcStub = OpereServiceGrpc.newBlockingStub(opereGrpcChannel);
+            LOGGER.info("gRPC Client for GestioneOpere initialized, target: " + OPERE_GRPC_HOST + ":" + OPERE_GRPC_PORT);
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Failed to initialize GatewayController resources", e);
+        }
+    }
     /**
      * Avvia il listener per le risposte dai moduli
      */
@@ -749,22 +779,30 @@ public class GatewayController {
     // === CLEANUP ===
     // =================================================================================
 
+    @PreDestroy
     public void cleanup() {
+        LOGGER.info("Cleaning up GatewayController resources...");
+
+        // Ferma il listener Kafka
         responseListenerRunning = false;
-
-        // Completa tutte le future pendenti con timeout
-        for (Map.Entry<String, CompletableFuture<String>> entry : pendingResponses.entrySet()) {
-            entry.getValue().complete("{\"status\":\"timeout\",\"message\":\"Server shutdown\"}");
-        }
-        pendingResponses.clear();
-
-        if (kafkaProducer != null) {
-            kafkaProducer.close();
-        }
         if (responseConsumer != null) {
             responseConsumer.close();
         }
-        LOGGER.info("Gateway Controller fermato");
+        if (kafkaProducer != null) {
+            kafkaProducer.close();
+        }
+
+        // Spegni il canale gRPC in modo pulito
+        if (opereGrpcChannel != null && !opereGrpcChannel.isShutdown()) {
+            try {
+                opereGrpcChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+                LOGGER.info("gRPC Channel for GestioneOpere shut down successfully.");
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "gRPC Channel shutdown interrupted", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+        LOGGER.info("Gateway Controller cleanup complete.");
     }
 
 
@@ -975,13 +1013,34 @@ public class GatewayController {
     @GET
     @Path("/opera/info/{operaId}")
     public Response getInfoOpera(@PathParam("operaId") String operaId, @QueryParam("userId") String userId) {
-        // TODO: Implementare chiamata gRPC
         try {
-            JSONObject infoOpera = LLMSimulationService.getInfoOpera(operaId, userId);
-            return Response.status(Response.Status.OK).entity(infoOpera.toString()).build();
-        } catch (Exception e) {
+            LOGGER.info("Calling gRPC GetInfoOpera for operaId: " + operaId);
+
+            // 1. Costruisci la richiesta gRPC
+            GetInfoOperaRequest request = GetInfoOperaRequest.newBuilder()
+                    .setOperaId(operaId)
+                    .setUserId(userId != null ? userId : "")
+                    .build();
+
+            // 2. Esegui la chiamata sincrona (bloccante)
+            // L'errore avveniva qui perché 'opereGrpcStub' era null.
+            GetInfoOperaResponse response = opereGrpcStub.getInfoOpera(request);
+
+            // 3. Restituisci la risposta JSON al client
+            return Response.status(Response.Status.OK)
+                    .entity(response.getJsonResponse())
+                    .build();
+
+        } catch (StatusRuntimeException e) {
+            LOGGER.log(Level.SEVERE, "gRPC call failed: " + e.getStatus(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore info opera: " + e.getMessage() + "\"}")
+                    .entity("{\"error\": \"Failed to contact OperaService: " + e.getStatus().getDescription() + "\"}")
+                    .build();
+        } catch (Exception e) {
+            // Cattura altre eccezioni, come il NullPointerException se l'inizializzazione è fallita
+            LOGGER.log(Level.SEVERE, "An unexpected error occurred in getInfoOpera", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"An internal error occurred in the Gateway.\"}")
                     .build();
         }
     }

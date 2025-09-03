@@ -1,8 +1,14 @@
 plugins {
     id("java")
     id("org.gradle.war")
+    id("com.google.protobuf") version "0.9.4"
 }
 
+val osClassifier = when {
+    System.getProperty("os.name").toLowerCase().contains("windows") -> "windows-x86_64"
+    System.getProperty("os.name").toLowerCase().contains("mac") -> "osx-x86_64"
+    else -> "linux-x86_64"
+}
 group = "it.unisannio.gateway"
 version = "unspecified"
 
@@ -40,9 +46,60 @@ dependencies {
         implementation(project(":GestioneOpere"))
         implementation(project(":Kafka"))
 
+    // Dipendenze Protobuf e gRPC
+    implementation("com.google.protobuf:protobuf-java:4.27.0")
+    implementation("io.grpc:grpc-netty-shaded:1.65.1")
+    implementation("io.grpc:grpc-protobuf:1.65.1")
+    implementation("io.grpc:grpc-stub:1.65.1")
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("com.google.protobuf:protobuf-java:4.27.1")
 
 
 }
+configurations {
+    // Risolve l'ambiguità per il codice sorgente principale
+    getByName("compileProtoPath") {
+        attributes {
+            attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String::class.java), "jvm")
+        }
+    }
+    // AGGIUNGI QUESTO: Risolve l'ambiguità anche per il codice di test
+    getByName("testCompileProtoPath") {
+        attributes {
+            attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String::class.java), "jvm")
+        }
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.27.1:${osClassifier}"
+    }
+    plugins {
+        create("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.65.1"
+        }
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.plugins {
+                create("grpc")
+            }
+            task.builtins {
+                maybeCreate("java")
+            }
+        }
+    }
+    // IMPORTANTE: Dice a Gradle dove trovare il file .proto
+    sourceSets {
+        main {
+            proto {
+                srcDir("../GestioneOpere/src/main/proto")
+            }
+        }
+    }
+}
+
 tasks.named<War>("war") {
     // Imposta il nome del file WAR
     archiveFileName.set("gateway.war")
