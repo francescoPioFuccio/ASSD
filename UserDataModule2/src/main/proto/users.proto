@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "it.unisannio.user.grpc";
+option java_outer_classname = "UserServiceProto";
+
+package it.unisannio.user.grpc;
+
+// Messaggio di richiesta per register
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string nome = 3;
+  string cognome = 4;
+  repeated string museoPreferito = 5; // repeated per gestire la lista
+}
+
+// Messaggio di risposta per register
+message RegisterResponse {
+  string status = 1; // "success" o "error"
+  string message = 2;
+  string jsonResponse = 3; // Risposta completa in formato JSON
+}
+
+// AGGIUNTO: Messaggio di richiesta per login
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+// AGGIUNTO: Messaggio di risposta per login
+message LoginResponse {
+  string status = 1; // "success" o "error"
+  string message = 2;
+  string jsonResponse = 3; // Risposta completa in formato JSON (include user object se success)
+}
+
+// Il servizio gRPC per gli utenti
+service UserService {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (LoginResponse); // AGGIUNTO
+  // Aggiungeremo qui altri metodi gRPC come getUserById, ecc.
+}

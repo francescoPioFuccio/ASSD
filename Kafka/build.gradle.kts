@@ -7,7 +7,11 @@ plugins {
 group = "it.unisannio.gateway"
 version = "unspecified"
 
-
+// Aggiungi questa configurazione Java
+java {
+    sourceCompatibility = JavaVersion.VERSION_22
+    targetCompatibility = JavaVersion.VERSION_22
+}
 
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))

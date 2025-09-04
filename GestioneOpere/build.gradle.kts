@@ -1,5 +1,5 @@
 plugins {
-    id("org.gradle.war")
+    id("org.gradle.war")  // Cambiato da "org.gradle.war"
     id("java")
     id("com.google.protobuf") version "0.9.4"
 }
@@ -16,39 +16,55 @@ val osClassifier = when {
 
 dependencies {
     implementation(project(":UserDataModule2"))
-    implementation(libs.firebase.firestore)
+    implementation(project(":Kafka"))
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    // JSON, Jakarta, RESTEasy, ecc...
+    // JSON e utility
     implementation("org.json:json:20240303")
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Jakarta EE APIs (compileOnly per WildFly)
     compileOnly("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
     compileOnly("jakarta.inject:jakarta.inject-api:2.0.1")
-    compileOnly("org.jboss.resteasy:resteasy-multipart-provider:6.2.12.Final")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation(project(":Kafka"))
     compileOnly("jakarta.platform:jakarta.jakartaee-api:10.0.0")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.0.0")
+    compileOnly("jakarta.ejb:jakarta.ejb-api:4.0.1")
+    compileOnly("jakarta.annotation:jakarta.annotation-api:2.1.1")
+    compileOnly("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
+    compileOnly("jakarta.enterprise.concurrent:jakarta.enterprise.concurrent-api:3.0.3")
+
+    // RESTEasy
+    compileOnly("org.jboss.resteasy:resteasy-multipart-provider:6.2.12.Final")
+
+    // Kafka
     implementation("org.apache.kafka:kafka-clients:3.6.1")
-    implementation("com.google.protobuf:protobuf-java:4.27.0")
-    // Dipendenze gRPC - Aggiorna le versioni per compatibilità Jakarta
+
+    // Jackson per Kafka
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.1")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.16.1")
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.16.1")
+
+    // gRPC e Protobuf (versioni aggiornate e consistenti)
     implementation("io.grpc:grpc-netty-shaded:1.65.1")
     implementation("io.grpc:grpc-protobuf:1.65.1")
     implementation("io.grpc:grpc-stub:1.65.1")
-    compileOnly("org.apache.tomcat:annotations-api:6.0.53")
     implementation("com.google.protobuf:protobuf-java:4.27.1")
-    // Aggiungi javax.annotation per compatibilità
+
+    // Annotations per generated code
     implementation("javax.annotation:javax.annotation-api:1.3.2")
+    compileOnly("org.apache.tomcat:annotations-api:6.0.53")
 }
 
 configurations {
-    // Risolve l'ambiguità per il codice sorgente principale (GIÀ PRESENTE)
+    // Risolve l'ambiguità per il codice sorgente principale
     getByName("compileProtoPath") {
         attributes {
             attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String::class.java), "jvm")
         }
     }
-    // AGGIUNGI QUESTO: Risolve l'ambiguità anche per il codice di test (MANCANTE)
+    // Risolve l'ambiguità anche per il codice di test
     getByName("testCompileProtoPath") {
         attributes {
             attribute(Attribute.of("org.jetbrains.kotlin.platform.type", String::class.java), "jvm")
@@ -72,7 +88,6 @@ protobuf {
             task.plugins {
                 create("grpc")
             }
-            // Rimuovi l'opzione jakarta che causa l'errore
             task.builtins {
                 maybeCreate("java")
             }

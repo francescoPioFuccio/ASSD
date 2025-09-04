@@ -4,7 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.*;
 
-import static org.jboss.resteasy.plugins.providers.multipart.i18n.LogMessages.LOGGER;
+import java.util.logging.Logger;
 
 public class QuestSimulationService {
 
@@ -14,6 +14,7 @@ public class QuestSimulationService {
 
     // Database simulato delle quest per diversi musei
     private static final Map<String, List<JSONObject>> DATABASE_QUEST = initializeDatabaseQuest();
+    private static final Logger LOGGER = Logger.getLogger(QuestSimulationService.class.getName());
 
     /**
      * Ottiene le quest disponibili per un museo basate su preferenze utente

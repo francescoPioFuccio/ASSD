@@ -13,7 +13,8 @@ import it.unisannio.opere.grpc.OpereServiceGrpc;
 import jakarta.annotation.PreDestroy;
 import kafka_impl.KafkaProducerService;
 import kafka_impl.KafkaConsumerService;
-
+import it.unisannio.user.grpc.LoginRequest;
+import it.unisannio.user.grpc.LoginResponse;
 import com.google.gson.Gson;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -22,7 +23,8 @@ import jakarta.ws.rs.core.Response;
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Startup;
 import jakarta.ejb.Singleton;
-
+import it.unisannio.quest.grpc.GetDettaglioQuestRequest;
+import it.unisannio.quest.grpc.GetDettaglioQuestResponse;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.mindrot.jbcrypt.BCrypt;
@@ -38,6 +40,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.enterprise.context.ApplicationScoped;
+// Aggiungi questi import all'inizio del file GatewayController.java
+import it.unisannio.user.grpc.UserServiceGrpc;
+import it.unisannio.user.grpc.RegisterRequest;
+import it.unisannio.user.grpc.RegisterResponse;
+import it.unisannio.quest.grpc.QuestServiceGrpc;
+import it.unisannio.quest.grpc.GetQuestDisponibiliRequest;
+import it.unisannio.quest.grpc.GetQuestDisponibiliResponse;
+import it.unisannio.quest.grpc.GetStoricoQuestRequest;
+import it.unisannio.quest.grpc.GetStoricoQuestResponse;
 /**
  * Gateway Controller con gestione completa dei messaggi asincroni Kafka
  * Include listener per le risposte dai moduli
@@ -59,7 +70,17 @@ public class GatewayController {
     private static final String OPERE_GRPC_HOST = "localhost";
     private static final int OPERE_GRPC_PORT = 50052;
     private ManagedChannel opereGrpcChannel;
+    // Aggiungi queste costanti dopo quelle esistenti per OPERE_GRPC
+    private static final String USER_GRPC_HOST = "localhost";
+    private static final int USER_GRPC_PORT = 50053;
+    private static final String QUEST_GRPC_HOST = "localhost";
+    private static final int QUEST_GRPC_PORT = 50054;
+    // Aggiungi questi campi dopo quelli esistenti per il client gRPC delle opere
+    private ManagedChannel userGrpcChannel;
+    private UserServiceGrpc.UserServiceBlockingStub userGrpcStub;
     private OpereServiceGrpc.OpereServiceBlockingStub opereGrpcStub;
+    private ManagedChannel questGrpcChannel;
+    private QuestServiceGrpc.QuestServiceBlockingStub questGrpcStub;
     // Timeout per risposte asincrone (in secondi)
     private static final int ASYNC_RESPONSE_TIMEOUT = 30;
 
@@ -102,6 +123,19 @@ public class GatewayController {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to initialize GatewayController resources", e);
         }
+        // Nel metodo @PostConstruct init(), aggiungi dopo l'inizializzazione del client gRPC opere:
+// Inizializzazione del client gRPC per User Service
+        this.userGrpcChannel = ManagedChannelBuilder.forAddress(USER_GRPC_HOST, USER_GRPC_PORT)
+                .usePlaintext() // Per sviluppo. Usare TLS in produzione.
+                .build();
+        this.userGrpcStub = UserServiceGrpc.newBlockingStub(userGrpcChannel);
+        LOGGER.info("gRPC Client for UserDataModule initialized, target: " + USER_GRPC_HOST + ":" + USER_GRPC_PORT);
+        // Inizializzazione del client gRPC per Quest Service
+        this.questGrpcChannel = ManagedChannelBuilder.forAddress(QUEST_GRPC_HOST, QUEST_GRPC_PORT)
+                .usePlaintext() // Per sviluppo. Usare TLS in produzione.
+                .build();
+        this.questGrpcStub = QuestServiceGrpc.newBlockingStub(questGrpcChannel);
+        LOGGER.info("gRPC Client for QuestService initialized, target: " + QUEST_GRPC_HOST + ":" + QUEST_GRPC_PORT);
     }
     /**
      * Avvia il listener per le risposte dai moduli
@@ -212,7 +246,7 @@ public class GatewayController {
                     while (keys.hasNext()) {
                         String currentKey = keys.next();
                         if (!staticKeys.contains(currentKey)) {
-                             payloadKey = currentKey;
+                            payloadKey = currentKey;
                             break;
                         }
                     }
@@ -223,7 +257,7 @@ public class GatewayController {
                                 .entity(payload.toString())
                                 .build();
                     } else {
-                       String error = "{\"error\":\"Malformed success response from microservice: payload missing.\"}";
+                        String error = "{\"error\":\"Malformed success response from microservice: payload missing.\"}";
                         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                                 .entity(error)
                                 .build();
@@ -263,61 +297,129 @@ public class GatewayController {
                 .build();
     }
 
-    // SINCRONO - Login rimane gestito localmente per sicurezza
+    // SINCRONO CON GRPC - Login gestito tramite gRPC per coerenza architetturale
     @POST
     @Path("/users/login")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response login(User user) {
-        User foundUser = userRepository.findByEmail(user.getEmail());
-        if (foundUser == null || !BCrypt.checkpw(user.getPassword(), foundUser.getPassword())) {
-            LOGGER.warning("Tentativo di login fallito per email: " + user.getEmail());
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .entity("{\"message\": \"Credenziali non valide.\"}")
+        try {
+            LOGGER.info("REST Login request for email: " + user.getEmail());
+
+            // Validazione preliminare dei campi
+            if (user.getEmail() == null || user.getEmail().isEmpty() ||
+                    user.getPassword() == null || user.getPassword().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"Email e password sono obbligatori.\"}")
+                        .build();
+            }
+
+            // Costruisci la richiesta gRPC
+            LoginRequest request = LoginRequest.newBuilder()
+                    .setEmail(user.getEmail())
+                    .setPassword(user.getPassword())
+                    .build();
+
+            // Chiamata gRPC sincrona
+            LoginResponse response = userGrpcStub.login(request);
+
+            // Gestisci la risposta
+            if ("success".equals(response.getStatus())) {
+                LOGGER.info("gRPC Login successful for: " + user.getEmail());
+                return Response.status(Response.Status.OK)
+                        .entity(response.getJsonResponse())
+                        .build();
+            } else {
+                // Login fallito
+                if (response.getMessage().contains("Credenziali non valide")) {
+                    LOGGER.warning("gRPC Login failed for email: " + user.getEmail());
+                    return Response.status(Response.Status.UNAUTHORIZED)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else if (response.getMessage().contains("obbligatori")) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else {
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(response.getJsonResponse())
+                            .build();
+                }
+            }
+
+        } catch (StatusRuntimeException e) {
+            LOGGER.log(Level.SEVERE, "gRPC call failed for login: " + e.getStatus(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Failed to contact UserService: " + e.getStatus().getDescription() + "\"}")
+                    .build();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "An unexpected error occurred in login", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"An internal error occurred in the Gateway.\"}")
                     .build();
         }
-        foundUser.setPassword(null);
-        LOGGER.info("Login riuscito per: " + foundUser.getEmail());
-        return Response.status(Response.Status.OK)
-                .entity("{\"message\": \"Login riuscito!\", \"user\": " + gson.toJson(foundUser) + "}")
-                .build();
     }
-
-    // SINCRONO - Registrazione rimane gestita localmente per sicurezza
+    // ==================== 2. GATEWAY - METODO REGISTER ====================
     @POST
     @Path("/users/register")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response register(User user) {
-        if (user.getEmail() == null || user.getEmail().isEmpty() ||
-                user.getPassword() == null || user.getPassword().isEmpty() ||
-                user.getNome() == null || user.getNome().isEmpty() ||
-                user.getCognome() == null || user.getCognome().isEmpty() ||
-                user.getMuseoPreferito() == null || user.getMuseoPreferito().isEmpty()) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"message\": \"Tutti i campi sono obbligatori per la registrazione.\"}")
-                    .build();
-        }
-
-        if (userRepository.findByEmail(user.getEmail()) != null) {
-            return Response.status(Response.Status.CONFLICT)
-                    .entity("{\"message\": \"Email già registrata.\"}")
-                    .build();
-        }
-
-        String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
-        user.setPassword(hashedPassword);
-
         try {
-            userRepository.save(user);
-            return Response.status(Response.Status.CREATED)
-                    .entity("{\"message\": \"Registrazione avvenuta con successo!\"}")
+            LOGGER.info("REST Register request for email: " + user.getEmail() +
+                    " with musei: " + user.getMuseoPreferito());
+
+            // Costruisci la richiesta gRPC
+            RegisterRequest.Builder requestBuilder = RegisterRequest.newBuilder()
+                    .setEmail(user.getEmail() != null ? user.getEmail() : "")
+                    .setPassword(user.getPassword() != null ? user.getPassword() : "")
+                    .setNome(user.getNome() != null ? user.getNome() : "")
+                    .setCognome(user.getCognome() != null ? user.getCognome() : "");
+
+            // CORREZIONE: Aggiungi TUTTI i musei preferiti
+            if (user.getMuseoPreferito() != null && !user.getMuseoPreferito().isEmpty()) {
+                LOGGER.info("Adding " + user.getMuseoPreferito().size() + " musei to gRPC request");
+                requestBuilder.addAllMuseoPreferito(user.getMuseoPreferito());
+            } else {
+                LOGGER.info("No musei preferiti to add (lista vuota o null)");
+            }
+
+            RegisterRequest request = requestBuilder.build();
+
+            // Chiamata gRPC sincrona
+            RegisterResponse response = userGrpcStub.register(request);
+
+            // Gestisci la risposta
+            if ("success".equals(response.getStatus())) {
+                return Response.status(Response.Status.CREATED)
+                        .entity(response.getJsonResponse())
+                        .build();
+            } else {
+                if (response.getMessage().contains("già registrata")) {
+                    return Response.status(Response.Status.CONFLICT)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else if (response.getMessage().contains("obbligatori")) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else {
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(response.getJsonResponse())
+                            .build();
+                }
+            }
+
+        } catch (StatusRuntimeException e) {
+            LOGGER.log(Level.SEVERE, "gRPC call failed: " + e.getStatus(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Failed to contact UserService: " + e.getStatus().getDescription() + "\"}")
                     .build();
         } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "An unexpected error occurred in register", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore interno: " + e.getMessage() + "\"}")
+                    .entity("{\"message\": \"An internal error occurred in the Gateway.\"}")
                     .build();
         }
     }
-
     // ASINCRONO CON RISPOSTA - Applica promozione
     @POST
     @Path("/users/applica-promozione")
@@ -392,6 +494,7 @@ public class GatewayController {
     // === QUEST ENDPOINTS (Mantenuti per compatibilità - TODO: implementare nei moduli) ===
     // =================================================================================
 
+    // 5. SOSTITUISCI IL METODO getQuestDisponibili ESISTENTE con questo:
     @GET
     @Path("/quest/disponibili")
     public Response getQuestDisponibili(
@@ -401,24 +504,58 @@ public class GatewayController {
             @QueryParam("difficolta") String difficolta) {
 
         try {
+            LOGGER.info("REST GetQuestDisponibili request for userId: " + userId + ", museoId: " + museoId);
+
+            // Validazione preliminare dei campi obbligatori
             if (userId == null || userId.isEmpty() || museoId == null || museoId.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("{\"message\": \"UserId e MuseoId sono obbligatori.\"}")
                         .build();
             }
-            // TODO: Convertire a chiamata Kafka asincrona
-            JSONObject risultato = QuestSimulationService.getQuestDisponibili(userId, museoId,
-                    preferenze != null ? preferenze : "",
-                    difficolta != null ? difficolta : "media");
-            if (!risultato.getBoolean("found")) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("{\"message\": \"Nessuna quest disponibile.\"}")
+
+            // Costruisci la richiesta gRPC
+            GetQuestDisponibiliRequest request = GetQuestDisponibiliRequest.newBuilder()
+                    .setUserId(userId)
+                    .setMuseoId(museoId)
+                    .setPreferenze(preferenze != null ? preferenze : "")
+                    .setDifficolta(difficolta != null ? difficolta : "media")
+                    .build();
+
+            // Chiamata gRPC sincrona
+            GetQuestDisponibiliResponse response = questGrpcStub.getQuestDisponibili(request);
+
+            // Gestisci la risposta
+            if ("success".equals(response.getStatus())) {
+                LOGGER.info("gRPC GetQuestDisponibili successful for userId: " + userId + ", museoId: " + museoId);
+                return Response.status(Response.Status.OK)
+                        .entity(response.getJsonResponse())
                         .build();
+            } else {
+                // Errore nella ricerca quest
+                if (response.getMessage().contains("Nessuna quest disponibile")) {
+                    return Response.status(Response.Status.NOT_FOUND)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else if (response.getMessage().contains("obbligatori")) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else {
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(response.getJsonResponse())
+                            .build();
+                }
             }
-            return Response.status(Response.Status.OK).entity(risultato.toString()).build();
-        } catch (Exception e) {
+
+        } catch (StatusRuntimeException e) {
+            LOGGER.log(Level.SEVERE, "gRPC call failed for getQuestDisponibili: " + e.getStatus(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore interno: " + e.getMessage() + "\"}")
+                    .entity("{\"message\": \"Failed to contact QuestService: " + e.getStatus().getDescription() + "\"}")
+                    .build();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "An unexpected error occurred in getQuestDisponibili", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"An internal error occurred in the Gateway.\"}")
                     .build();
         }
     }
@@ -430,22 +567,56 @@ public class GatewayController {
             @QueryParam("userId") String userId) {
 
         try {
+            LOGGER.info("REST GetDettaglioQuest request for questId: " + questId + ", userId: " + userId);
+
+            // Validazione preliminare dei campi obbligatori
             if (questId == null || questId.isEmpty() || userId == null || userId.isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                         .entity("{\"message\": \"QuestId e UserId sono obbligatori.\"}")
                         .build();
             }
-            // TODO: Convertire a chiamata Kafka asincrona
-            JSONObject dettagliQuest = QuestSimulationService.getDettaglioQuest(questId, userId);
-            if (!dettagliQuest.getBoolean("found")) {
-                return Response.status(Response.Status.NOT_FOUND)
-                        .entity("{\"message\": \"Quest non trovata.\"}")
+
+            // Costruisci la richiesta gRPC
+            GetDettaglioQuestRequest request = GetDettaglioQuestRequest.newBuilder()
+                    .setQuestId(questId)
+                    .setUserId(userId)
+                    .build();
+
+            // Chiamata gRPC sincrona
+            GetDettaglioQuestResponse response = questGrpcStub.getDettaglioQuest(request);
+
+            // Gestisci la risposta
+            if ("success".equals(response.getStatus())) {
+                LOGGER.info("gRPC GetDettaglioQuest successful for questId: " + questId + ", userId: " + userId);
+                return Response.status(Response.Status.OK)
+                        .entity(response.getJsonResponse())
                         .build();
+            } else {
+                // Errore nella ricerca quest
+                if (response.getMessage().contains("Quest non trovata")) {
+                    return Response.status(Response.Status.NOT_FOUND)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else if (response.getMessage().contains("obbligatori")) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else {
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(response.getJsonResponse())
+                            .build();
+                }
             }
-            return Response.status(Response.Status.OK).entity(dettagliQuest.toString()).build();
-        } catch (Exception e) {
+
+        } catch (StatusRuntimeException e) {
+            LOGGER.log(Level.SEVERE, "gRPC call failed for getDettaglioQuest: " + e.getStatus(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore nel recupero: " + e.getMessage() + "\"}")
+                    .entity("{\"message\": \"Failed to contact QuestService: " + e.getStatus().getDescription() + "\"}")
+                    .build();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "An unexpected error occurred in getDettaglioQuest", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"An internal error occurred in the Gateway.\"}")
                     .build();
         }
     }
@@ -792,6 +963,7 @@ public class GatewayController {
             kafkaProducer.close();
         }
 
+
         // Spegni il canale gRPC in modo pulito
         if (opereGrpcChannel != null && !opereGrpcChannel.isShutdown()) {
             try {
@@ -802,6 +974,26 @@ public class GatewayController {
                 Thread.currentThread().interrupt();
             }
         }
+        if (userGrpcChannel != null && !userGrpcChannel.isShutdown()) {
+            try {
+                userGrpcChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+                LOGGER.info("gRPC Channel for UserDataModule shut down successfully.");
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "User gRPC Channel shutdown interrupted", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+        // Chiusura del canale gRPC Quest
+        if (questGrpcChannel != null && !questGrpcChannel.isShutdown()) {
+            try {
+                questGrpcChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+                LOGGER.info("gRPC Channel for QuestService shut down successfully.");
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.WARNING, "Quest gRPC Channel shutdown interrupted", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+
         LOGGER.info("Gateway Controller cleanup complete.");
     }
 
@@ -929,30 +1121,61 @@ public class GatewayController {
     @GET
     @Path("/quest/storico/{userId}")
     public Response getStoricoQuest(@PathParam("userId") String userId) {
-        // TODO: Implementare chiamata gRPC
         try {
-            JSONObject storico = QuestSimulationService.getStoricoQuest(userId);
-            return Response.status(Response.Status.OK).entity(storico.toString()).build();
-        } catch (Exception e) {
+            LOGGER.info("REST GetStoricoQuest request for userId: " + userId);
+
+            // Validazione preliminare del campo obbligatorio
+            if (userId == null || userId.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"UserId è obbligatorio.\"}")
+                        .build();
+            }
+
+            // Costruisci la richiesta gRPC
+            GetStoricoQuestRequest request = GetStoricoQuestRequest.newBuilder()
+                    .setUserId(userId)
+                    .build();
+
+            // Chiamata gRPC sincrona
+            GetStoricoQuestResponse response = questGrpcStub.getStoricoQuest(request);
+
+            // Gestisci la risposta
+            if ("success".equals(response.getStatus())) {
+                LOGGER.info("gRPC GetStoricoQuest successful for userId: " + userId);
+                return Response.status(Response.Status.OK)
+                        .entity(response.getJsonResponse())
+                        .build();
+            } else {
+                // Errore nella ricerca storico
+                if (response.getMessage().contains("Nessuno storico disponibile")) {
+                    return Response.status(Response.Status.OK) // 200 OK perché la richiesta è valida, solo che non ci sono dati
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else if (response.getMessage().contains("obbligatorio")) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                            .entity(response.getJsonResponse())
+                            .build();
+                } else {
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(response.getJsonResponse())
+                            .build();
+                }
+            }
+
+        } catch (StatusRuntimeException e) {
+            LOGGER.log(Level.SEVERE, "gRPC call failed for getStoricoQuest: " + e.getStatus(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore recupero storico: " + e.getMessage() + "\"}")
+                    .entity("{\"message\": \"Failed to contact QuestService: " + e.getStatus().getDescription() + "\"}")
+                    .build();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "An unexpected error occurred in getStoricoQuest", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"An internal error occurred in the Gateway.\"}")
                     .build();
         }
     }
 
-    @GET
-    @Path("/quest/musei-visitati/{userId}")
-    public Response getMuseiVisitati(@PathParam("userId") String userId) {
-        // TODO: Implementare chiamata gRPC
-        try {
-            JSONObject museiVisitati = QuestSimulationService.getMuseiVisitati(userId);
-            return Response.status(Response.Status.OK).entity(museiVisitati.toString()).build();
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"message\": \"Errore recupero musei: " + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
+
 
     @GET
     @Path("/quest/statistiche/{userId}")

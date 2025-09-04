@@ -53,7 +53,7 @@ public class HistoryViewModel extends AndroidViewModel {
         Log.d("HistoryViewModel", "Fetching user history for ID: " + userId);
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8085/gateway/api/quest/storico/" + userId;
+        String url = "http://10.0.2.2:8080/gateway/api/quest/storico/" + userId;
 
 
         Log.d("HistoryViewModel", "History URL: " + url);

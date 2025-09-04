@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "it.unisannio.quest.grpc";
+option java_outer_classname = "QuestServiceProto";
+
+package it.unisannio.quest.grpc;
+
+// Messaggio di richiesta per getQuestDisponibili
+message GetQuestDisponibiliRequest {
+  string userId = 1;
+  string museoId = 2;
+  string preferenze = 3;     // campo opzionale
+  string difficolta = 4;     // campo opzionale, default "media"
+}
+
+// Messaggio di risposta per getQuestDisponibili
+message GetQuestDisponibiliResponse {
+  string status = 1;         // "success" o "error"
+  string message = 2;
+  string jsonResponse = 3;   // Risposta completa in formato JSON
+}
+
+// Messaggio di richiesta per getStoricoQuest
+message GetStoricoQuestRequest {
+  string userId = 1;         // ID utente obbligatorio
+}
+
+// Messaggio di risposta per getStoricoQuest
+message GetStoricoQuestResponse {
+  string status = 1;         // "success" o "error"
+  string message = 2;
+  string jsonResponse = 3;   // Risposta completa in formato JSON con storico
+}
+
+// NUOVO: Messaggio di richiesta per getDettaglioQuest
+message GetDettaglioQuestRequest {
+  string questId = 1;        // ID quest obbligatorio
+  string userId = 2;         // ID utente obbligatorio
+}
+
+// NUOVO: Messaggio di risposta per getDettaglioQuest
+message GetDettaglioQuestResponse {
+  string status = 1;         // "success" o "error"
+  string message = 2;
+  string jsonResponse = 3;   // Risposta completa in formato JSON con dettagli
+}
+
+// Il servizio gRPC per le quest
+service QuestService {
+  rpc GetQuestDisponibili (GetQuestDisponibiliRequest) returns (GetQuestDisponibiliResponse);
+  rpc GetStoricoQuest (GetStoricoQuestRequest) returns (GetStoricoQuestResponse);
+  // NUOVO: Metodo per ottenere dettagli di una quest specifica
+  rpc GetDettaglioQuest (GetDettaglioQuestRequest) returns (GetDettaglioQuestResponse);
+  // Aggiungeremo qui altri metodi gRPC come iniziaQuest, ecc.
+}

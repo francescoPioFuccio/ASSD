@@ -60,7 +60,7 @@ public class MuseiViewModel extends AndroidViewModel {
         OkHttpClient client = new OkHttpClient();
 
         // Costruisci l'URL con i parametri
-        StringBuilder urlBuilder = new StringBuilder("http://10.0.2.2:8085/gateway/api/musei/raccomandati");
+        StringBuilder urlBuilder = new StringBuilder("http://10.0.2.2:8080/gateway/api/musei/raccomandati");
 
         urlBuilder.append("?userId=").append(userId);
         urlBuilder.append("&latitudine=").append(latitudine);
@@ -137,7 +137,7 @@ public class MuseiViewModel extends AndroidViewModel {
         Log.d("MuseiViewModel", "Fetching dettaglio museo: " + museoId);
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8085/gestionemusei/api/musei/dettaglio/" + museoId +
+        String url = "http://10.0.2.2:8080/gestionemusei/api/musei/dettaglio/" + museoId +
                 "?userId=" + userId;
 
         Request request = new Request.Builder()
@@ -175,7 +175,7 @@ public class MuseiViewModel extends AndroidViewModel {
         Log.d("MuseiViewModel", "Aggiungendo museo ai preferiti: " + museoId);
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8085/gestionemusei/api/musei/preferiti";
+        String url = "http://10.0.2.2:8080/gestionemusei/api/musei/preferiti";
 
         JSONObject requestBody = new JSONObject();
         try {
