@@ -9,9 +9,14 @@ group = "it.unisannio.gateway"
 version = "unspecified"
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(22)
-    }
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+// Aggiungi questo per assicurarti che tutti i task usino la versione corretta
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
 }
 
 // Determina il classificatore per il sistema operativo corrente

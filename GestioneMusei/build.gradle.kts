@@ -1,5 +1,5 @@
 plugins {
-    id("war")  // Cambiato da "org.gradle.war"
+    id("org.gradle.war")  // Cambiato da "org.gradle.war"
     id("java")
     id("com.google.protobuf") version "0.9.4"
 }
@@ -12,7 +12,16 @@ val osClassifier = when {
     System.getProperty("os.name").toLowerCase().contains("mac") -> "osx-x86_64"
     else -> "linux-x86_64"
 }
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
+// Aggiungi questo per assicurarti che tutti i task usino la versione corretta
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+}
 // Rimuovo il classificatore OS-specifico che può causare problemi
 
 dependencies {

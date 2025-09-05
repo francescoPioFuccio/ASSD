@@ -1,0 +1,6 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Colore del testo quando l'elemento è selezionato -->
+    <item android:color="@color/white" android:state_selected="true"/>
+    <!-- Colore del testo predefinito -->
+    <item android:color="@color/purple_700"/>
+</selector>

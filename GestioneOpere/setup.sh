@@ -1,57 +1,71 @@
 #!/bin/bash
 
-# --- PASSO 1: GENERAZIONE DELLO SCRIPT CLI PER IL DATASOURCE ---
-# Questo crea un file .cli temporaneo con i dettagli del tuo database.
-# Le variabili d'ambiente (es. $DB_HOST) sono passate dal docker-compose.yml.
-# I valori dopo :- (es. :-localhost) sono fallback se le variabili non sono impostate.
-echo "Generating dynamic datasource configuration script..."
-cat > /opt/jboss/container-setup/configure-datasource-dynamic.cli <<EOT
-# Aggiungi il modulo per il driver MySQL
-# 'com.mysql.cj' è il nome del modulo, mysql-connector-j-8.0.32.jar è il file del driver.
-# Assicurati che il nome del file .jar sia corretto per la tua versione (es. mysql-connector-j-8.0.32.jar).
-module add --name=com.mysql.cj --resources=/opt/jboss/container-setup/mysql-connector-j-8.0.32.jar --dependencies=javax.api,javax.transaction.api
+# =============================================================================
+#  SCRIPT DI SETUP ROBUSTO PER WILDFLY
+#  Questo script esegue la configurazione e il deploy in modo atomico
+#  per evitare race condition e garantire un avvio pulito.
+# =============================================================================
 
-# Aggiungi il driver JDBC MySQL a WildFly
-# 'mysql' è il nome del driver logico, com.mysql.cj.jdbc.Driver è la classe Java del driver.
-/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql.cj,driver-class-name=com.mysql.cj.jdbc.Driver)
+WILDFLY_HOME="/opt/jboss/wildfly"
+WAR_FILE=$(find /opt/jboss/container-setup -name "*.war" | head -n 1)
 
-# Aggiungi il datasource JTA per la tua applicazione
-# jndi-name="java:/MySqlDS1" DEVE CORRISPONDERE A QUANTO HAI NEL persistence.xml
-# Ho rimosso 'pool-name' che non è supportato in WildFly 25 per questa configurazione.
-/subsystem=datasources/data-source=MySqlDS1:add(connection-url="jdbc:mysql://${DB_HOST:-localhost}:${DB_PORT:-3306}/${DB_NAME:-your_database}?useSSL=false&allowPublicKeyRetrieval=true",driver-name="mysql",jndi-name="java:/MySqlDS1",user-name="${DB_USER:-root}",password="${DB_PASSWORD:-password}",valid-connection-checker-class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker",exception-sorter-class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter",background-validation=true,background-validation-millis=10000)
-
-# Abilita il datasource appena creato
-/subsystem=datasources/data-source=MySqlDS1:enable
-EOT
-echo "Dynamic datasource configuration script generated."
-
-# --- PASSO 2: AVVIO DI WILDFLY IN BACKGROUND ---
-# Avvia WildFly in modalità standalone e lo mette in background (&).
-# -b 0.0.0.0 fa sì che WildFly ascolti su tutte le interfacce di rete, rendendolo accessibile dall'esterno del container.
-echo "Starting Wildfly in background..."
-/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0 &
-
-# --- PASSO 3: ATTESA DELL'AVVIO DI WILDFLY ---
-# È cruciale aspettare che WildFly sia completamente avviato prima di tentare di configurarlo.
-# Un semplice 'sleep' è accettabile per lo sviluppo, ma in produzione si userebbero controlli più robusti.
-echo "Waiting for Wildfly to fully start (this may take up to 45-60 seconds, be patient)..."
-sleep 45 # Aumenta questo valore se WildFly impiega più tempo sul tuo sistema
-
-# --- PASSO 4: ESECUZIONE DELLA CONFIGURAZIONE CLI ---
-# Una volta che WildFly è su, si connette al CLI e esegue lo script generato.
-echo "Running Wildfly CLI database configuration..."
-/opt/jboss/wildfly/bin/jboss-cli.sh --connect --file=/opt/jboss/container-setup/configure-datasource-dynamic.cli
-
-# Controlla il codice di uscita del comando CLI. Se diverso da 0, c'è stato un errore.
-if [ $? -ne 0 ]; then
-    echo "ERROR: Wildfly CLI configuration failed! Check logs above for details."
-    # Potresti voler uscire qui per far fallire il container, es. exit 1
-else
-    echo "Wildfly CLI database configuration completed successfully."
+if [ -z "$WAR_FILE" ]; then
+    echo "FATAL: No .war file found in /opt/jboss/container-setup/. Aborting."
+    exit 1
 fi
+echo "Found WAR file to deploy: $WAR_FILE"
 
-# --- PASSO 5: MANTENERE IL CONTAINER IN ESECUZIONE ---
-# Il 'wait $!' attende il processo di WildFly che è stato avviato in background.
-# Senza questo, il container si chiuderebbe non appena lo script setup.sh finisce.
-echo "Wildfly setup finished. Keeping Wildfly running."
-wait $!
+# 1. Avvia WildFly in modalità admin-only.
+#    In questa modalità, solo la console di amministrazione è attiva,
+#    il che permette una configurazione pulita senza che le applicazioni partano.
+echo "--> Starting WildFly in admin-only mode..."
+$WILDFLY_HOME/bin/standalone.sh -b 0.0.0.0 --admin-only &
+WILDFLY_PID=$!
+
+# 2. Attendi che il server sia pronto per accettare comandi.
+#    Questo ciclo controlla attivamente lo stato del server invece di usare un 'sleep' fisso.
+echo "--> Waiting for WildFly to be ready for configuration..."
+until $WILDFLY_HOME/bin/jboss-cli.sh -c "ls /subsystem=datasources" &> /dev/null; do
+  echo "    WildFly not ready yet, waiting 5 seconds..."
+  sleep 5
+done
+echo "--> WildFly is ready for configuration."
+
+# 3. Esegui TUTTA la configurazione e il deploy in un unico blocco (batch).
+#    Questo è atomico: o tutti i comandi hanno successo, o l'intera operazione viene annullata.
+#    Questo risolve il problema della datasource mancante.
+echo "--> Configuring datasource and deploying application..."
+$WILDFLY_HOME/bin/jboss-cli.sh --connect <<EOF
+batch
+# Configura il modulo del driver MySQL
+module add --name=com.mysql.cj --resources=/opt/jboss/container-setup/mysql-connector-j-8.0.32.jar --dependencies=javax.api,javax.transaction.api
+# Configura il driver JDBC
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql.cj)
+# Configura e abilita la datasource
+/subsystem=datasources/data-source=MySqlDS1:add(connection-url="jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}",jndi-name="java:/MySqlDS1",user-name="${DB_USER}",password="${DB_PASSWORD}",driver-name=mysql,enabled=true,use-ccm=true)
+# Deploy dell'applicazione WAR
+deploy $WAR_FILE --force-deploy
+# Esegui tutti i comandi del batch
+run-batch
+EOF
+
+# 4. Controlla se il batch di configurazione e deploy ha avuto successo.
+if [ $? -ne 0 ]; then
+    echo "FATAL: Configuration or deployment failed. See logs above. Shutting down."
+    # Se fallisce, spegni il server. Questo farà fallire il container,
+    # rendendo l'errore immediatamente visibile.
+    kill $WILDFLY_PID
+    exit 1
+fi
+echo "--> Configuration and deployment successful."
+
+# 5. Ferma il server in modalità admin-only per poterlo riavviare normalmente.
+echo "--> Shutting down admin-only server..."
+$WILDFLY_HOME/bin/jboss-cli.sh -c ":shutdown"
+
+# Attendi che il processo di WildFly termini completamente.
+wait $WILDFLY_PID
+
+# 6. Avvia WildFly in modalità normale.
+#    Il server ora partirà con la configurazione corretta e l'applicazione già deployata.
+$WILDFLY_HOME/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Djboss.http.port=8085 -Djava.security.egd=file:/dev/./urandom

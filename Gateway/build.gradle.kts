@@ -12,7 +12,16 @@ val osClassifier = when {
 group = "it.unisannio.gateway"
 version = "unspecified"
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
+// Aggiungi questo per assicurarti che tutti i task usino la versione corretta
+tasks.withType<JavaCompile> {
+    sourceCompatibility = "17"
+    targetCompatibility = "17"
+}
 
 dependencies {
 

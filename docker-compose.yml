@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # -------------------------------------------------------------
   # SERVIZIO MYSQL (IL TUO DATABASE)
@@ -18,127 +16,188 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - app_network
+    restart: unless-stopped
 
+  # -------------------------------------------------------------
+  # SERVIZI KAFKA E ZOOKEEPER
+  # -------------------------------------------------------------
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     hostname: zookeeper
+    container_name: museoapp-zookeeper
     ports:
       - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
     volumes:
       - zookeeper-data:/var/lib/zookeeper/data
       - zookeeper-log:/var/lib/zookeeper/log
     networks:
       - app_network
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     hostname: kafka
+    container_name: museoapp-kafka
     ports:
       - "9092:9092"
+      - "19092:19092"
     depends_on:
       - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://host.docker.internal:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
     volumes:
       - kafka-data:/var/lib/kafka/data
     networks:
       - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # Modulo: UserDataModule2
+  # -------------------------------------------------------------
+  # SERVIZI DEI MODULI BACKEND
+  # -------------------------------------------------------------
+
+  # Modulo: UserDataModule2 (esegue usermodule3.war)
   userdatamodule2_backend:
     build:
       context: ./UserDataModule2
       dockerfile: Dockerfile
     container_name: museoapp-userdatamodule2
     ports:
-      - "8088:8085"
+      - "8088:8085" # Cambiato da 8085 a 8080
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
       DB_NAME: luca3
       DB_USER: luca
       DB_PASSWORD: luca
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       - mysql_db
+      - kafka
     networks:
       - app_network
+    restart: unless-stopped
 
-  # Modulo: GestioneMusei
+  # Modulo: GestioneMusei (esegue gestionemusei.war)
   gestionemusei_backend:
     build:
       context: ./GestioneMusei
       dockerfile: Dockerfile
     container_name: museoapp-gestionemusei
     ports:
-      - "8087:8085"
+      - "8087:8085" # Cambiato da 8085 a 8080
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
       DB_NAME: luca3
       DB_USER: luca
       DB_PASSWORD: luca
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       - mysql_db
+      - kafka
     networks:
       - app_network
+    restart: unless-stopped
 
-  # Modulo: GestioneOpere
+  # Modulo: GestioneOpere (esegue gestioneopere.war)
   gestioneopere_backend:
     build:
       context: ./GestioneOpere
       dockerfile: Dockerfile
     container_name: museoapp-gestioneopere
     ports:
-      - "8086:8085"
+      - "8086:8085" # Cambiato da 8085 a 8080
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
       DB_NAME: luca3
       DB_USER: luca
       DB_PASSWORD: luca
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       - mysql_db
+      - kafka
     networks:
       - app_network
+    restart: unless-stopped
 
-  # Modulo: GestioneQuest
+  # Modulo: GestioneQuest (esegue gestionequest.war)
   gestionequest_backend:
     build:
       context: ./GestioneQuest
       dockerfile: Dockerfile
     container_name: museoapp-gestionequest
     ports:
-      - "8089:8085"
+      - "8089:8085" # Cambiato da 8085 a 8080
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
       DB_NAME: luca3
       DB_USER: luca
       DB_PASSWORD: luca
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
       - mysql_db
+      - kafka
     networks:
       - app_network
+    restart: unless-stopped
 
-# -------------------------------------------------------------
-# DEFINIZIONE DEI VOLUMI E DEL NETWORK
-# -------------------------------------------------------------
-volumes: # <-- QUESTA SEZIONE DEVE ESSERE QUI E ALLINEATA A SINISTRA
+  # Modulo: Gateway (esegue gateway.war) - PUNTO DI INGRESSO PRINCIPALE
+  gateway_backend:
+    build:
+      context: ./Gateway
+      dockerfile: Dockerfile
+    container_name: museoapp-gateway
+    ports:
+      - "8080:8085" # Cambiato da 8085 a 8080
+    environment:
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_NAME: luca3
+      DB_USER: luca
+      DB_PASSWORD: luca
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      # URL degli altri servizi (aggiornati alle nuove porte)
+      USER_MODULE_URL: http://userdatamodule2_backend:8080/
+      MUSEI_MODULE_URL: http://gestionemusei_backend:8080/
+      OPERE_MODULE_URL: http://gestioneopere_backend:8080/
+      QUEST_MODULE_URL: http://gestionequest_backend:8080/
+    depends_on:
+      - mysql_db
+      - kafka
+      - userdatamodule2_backend
+      - gestionemusei_backend
+      - gestioneopere_backend
+      - gestionequest_backend
+    networks:
+      - app_network
+    restart: unless-stopped
+
+volumes:
   mysql_data:
   zookeeper-data:
   zookeeper-log:
   kafka-data:
 
-networks: # <-- QUESTA SEZIONE DEVE ESSERE QUI E ALLINEATA A SINISTRA
+networks:
   app_network:
     driver: bridge

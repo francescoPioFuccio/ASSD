@@ -1,6 +1,12 @@
-# ... altre righe invariate ...
-# Crea una directory temporanea per il driver e lo script di setup
-RUN mkdir -p /opt/jboss/container-setup
+FROM quay.io/wildfly/wildfly:32.0.1.Final-jdk17
+
+# Crea directory come utente root, poi cambia proprietario
+USER root
+RUN mkdir -p /opt/jboss/container-setup && \
+    chown jboss:jboss /opt/jboss/container-setup
+
+# Torna all'utente jboss
+USER jboss
 
 # Copia il driver JDBC MySQL nel container
 COPY mysql-connector-j-8.0.32.jar /opt/jboss/container-setup/
