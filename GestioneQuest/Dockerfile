@@ -4,7 +4,7 @@ FROM quay.io/wildfly/wildfly:32.0.1.Final-jdk17
 # Aumenta la memoria della JVM per garantire un avvio stabile
 USER root
 RUN sed -i 's/-Xms64m/-Xms512m/' /opt/jboss/wildfly/bin/standalone.conf && \
-    sed -i 's/-Xmx512m/-Xmx1024m/' /opt/jboss/wildfly/bin/standalone.conf && \
+    sed -i 's/-Xmx512m/-Xmx1536m/' /opt/jboss/wildfly/bin/standalone.conf && \
     sed -i 's/MaxMetaspaceSize=256m/MaxMetaspaceSize=512m/' /opt/jboss/wildfly/bin/standalone.conf
 USER jboss
 

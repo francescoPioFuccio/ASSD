@@ -10,15 +10,6 @@
     tools:context=".ui.login.LoginActivity">
 
     <!-- Logo -->
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginBottom="32dp"
-        android:src="@drawable/ic_museum_logo"
-        app:layout_constraintBottom_toTopOf="@+id/cardView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Login Card -->
     <androidx.cardview.widget.CardView

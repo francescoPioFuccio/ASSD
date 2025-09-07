@@ -47,7 +47,7 @@ public class PuntiBonusViewModel extends AndroidViewModel {
         Log.d("PuntiBonusViewModel", "Fetching user points for ID: " + userId);
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8080/gateway/api/users/" + userId;
+        String url = "http://10.0.2.2:8085/gateway/api/users/" + userId;
 
         Log.d("PuntiBonusViewModel", "User points URL: " + url);
 
