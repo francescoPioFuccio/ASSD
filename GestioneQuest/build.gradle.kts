@@ -28,7 +28,7 @@ val osClassifier = when {
 
 dependencies {
     // Jakarta Persistence API
-    implementation("jakarta.persistence:jakarta.persistence-api:3.2.0")
+    compileOnly("jakarta.persistence:jakarta.persistence-api:3.2.0")
     implementation("org.apache.kafka:kafka-clients:3.7.0")
 
     // Hibernate Core (JPA Implementation) - se necessario

@@ -30,16 +30,16 @@ dependencies {
     implementation(project(":UserDataModule2"))
     implementation(project(":Kafka"))
     implementation("org.jboss.resteasy:resteasy-core:6.2.8.Final")
-    implementation("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
+    compileOnly("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
     implementation("org.jboss.resteasy:resteasy-servlet-initializer:6.2.8.Final")
     implementation("org.jboss.resteasy:resteasy-jackson2-provider:6.2.8.Final")
 
         // Jakarta EE 10 (per WildFly 27+)
-        implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
-        implementation("jakarta.inject:jakarta.inject-api:2.0.1")
-        implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
-        implementation("jakarta.transaction:jakarta.transaction-api:2.0.1")
-        implementation("jakarta.ejb:jakarta.ejb-api:4.0.0")
+        compileOnly("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
+        compileOnly("jakarta.inject:jakarta.inject-api:2.0.1")
+        compileOnly("jakarta.persistence:jakarta.persistence-api:3.1.0")
+        compileOnly("jakarta.transaction:jakarta.transaction-api:2.0.1")
+        compileOnly("jakarta.ejb:jakarta.ejb-api:4.0.0")
 
         // Altre dipendenze
         implementation("org.mindrot:jbcrypt:0.4")
@@ -110,14 +110,15 @@ protobuf {
 }
 
 tasks.named<War>("war") {
-    // Imposta il nome del file WAR
     archiveFileName.set("gateway.war")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-
-    // Gestisci i duplicati
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE // o DuplicatesStrategy.REPLACE, se preferisci sovrascrivere
+    // Escludi i persistence.xml dai JAR delle dipendenze
+    exclude { fileTreeElement ->
+        fileTreeElement.path.contains("META-INF/persistence.xml") &&
+                !fileTreeElement.file.absolutePath.contains("Gateway/src")
+    }
 }
-
 tasks.test {
     useJUnitPlatform()
 }
