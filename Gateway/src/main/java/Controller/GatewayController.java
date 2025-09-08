@@ -54,6 +54,7 @@ public class GatewayController {
             this.questHandler = new QuestHandler(kafkaMessageService, grpcClientManager);
             this.opereHandler = new OpereHandler(kafkaMessageService, grpcClientManager);
             this.museiHandler = new MuseiHandler(kafkaMessageService, grpcClientManager);
+
             this.healthHandler = new HealthHandler(kafkaMessageService);
 
             LOGGER.info("Gateway Controller initialized successfully");

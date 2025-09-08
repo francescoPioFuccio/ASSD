@@ -3,7 +3,7 @@ package Service;
 import Util.KafkaMessageService;
 import Util.GrpcClientManager;
 
-import Util.QuestSimulationService;
+import Entity.QuestSimulationService;
 
 import io.grpc.StatusRuntimeException;
 import it.unisannio.quest.grpc.GetQuestDisponibiliRequest;

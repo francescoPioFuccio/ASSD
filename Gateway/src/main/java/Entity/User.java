@@ -1,6 +1,6 @@
 package Entity; // Assicurati che il package sia corretto
 
-import Util.JsonStringListConverter;
+import Entity.JsonStringListConverter;
 import jakarta.persistence.*;
 
 import java.util.List;
