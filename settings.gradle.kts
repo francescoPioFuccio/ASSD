@@ -30,4 +30,4 @@ include("GestioneNavigazione")
 include("GestioneQuest")
 include("Gateway")
 include("Kafka")
-
+include("Grpc-api")

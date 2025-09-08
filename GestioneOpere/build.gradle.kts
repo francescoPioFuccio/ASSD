@@ -24,7 +24,6 @@ tasks.withType<JavaCompile> {
     targetCompatibility = "17"
 }
 dependencies {
-    implementation(project(":UserDataModule2"))
     implementation(project(":Kafka"))
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))

@@ -240,6 +240,17 @@ public class GatewayController {
     }
 
     @GET
+    @Path("/musei/raccomandati")
+    public Response getMuseiRaccomandati(
+            @QueryParam("userId") String userId,
+            @QueryParam("latitudine") Double latitudine,
+            @QueryParam("longitudine") Double longitudine,
+            @QueryParam("preferenze") String preferenze,
+            @QueryParam("raggio") Integer raggio) {
+        return museiHandler.getMuseiRaccomandatiGrpc(userId, latitudine, longitudine, preferenze, raggio);
+    }
+
+    @GET
     @Path("/musei/dettaglio/{museoId}")
     public Response getDettaglioMuseo(
             @PathParam("museoId") String museoId,

@@ -25,7 +25,6 @@ tasks.withType<JavaCompile> {
 // Rimuovo il classificatore OS-specifico che può causare problemi
 
 dependencies {
-    implementation(project(":UserDataModule2"))
     implementation(project(":Kafka"))
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))

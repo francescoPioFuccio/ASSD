@@ -39,6 +39,7 @@ services:
     volumes:
       - zookeeper-data:/var/lib/zookeeper/data
       - zookeeper-log:/var/lib/zookeeper/log
+
     networks:
       - app_network
     restart: unless-stopped

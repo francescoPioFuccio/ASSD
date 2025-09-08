@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "it.unisannio.musei.grpc";
+option java_outer_classname = "MuseiServiceProto";
+
+package it.unisannio.musei.grpc;
+
+// Messaggio di richiesta per getMuseiRaccomandati
+message GetMuseiRaccomandatiRequest {
+  string userId = 1;
+  double latitudine = 2;
+  double longitudine = 3;
+  string preferenze = 4; // opzionale
+  int32 raggio = 5; // in km, default 20
+}
+
+// Messaggio di risposta per getMuseiRaccomandati
+message GetMuseiRaccomandatiResponse {
+  string status = 1; // "success" o "error"
+  string message = 2; // messaggio di errore se status = "error"
+  string jsonResponse = 3; // JSON con la lista dei musei raccomandati
+}
+
+// Messaggio di richiesta per getDettaglioMuseo
+message GetDettaglioMuseoRequest {
+  string museoId = 1;
+  string userId = 2; // opzionale
+}
+
+// Messaggio di risposta per getDettaglioMuseo
+message GetDettaglioMuseoResponse {
+  string status = 1; // "success" o "error"
+  string message = 2; // messaggio di errore se status = "error"
+  string jsonResponse = 3; // JSON con i dettagli del museo
+}
+
+// Il servizio gRPC per i musei
+service MuseiService {
+  rpc GetMuseiRaccomandati (GetMuseiRaccomandatiRequest) returns (GetMuseiRaccomandatiResponse);
+  rpc GetDettaglioMuseo (GetDettaglioMuseoRequest) returns (GetDettaglioMuseoResponse);
+}

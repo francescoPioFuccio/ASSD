@@ -27,7 +27,6 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":UserDataModule2"))
     implementation(project(":Kafka"))
     implementation("org.jboss.resteasy:resteasy-core:6.2.8.Final")
     compileOnly("jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1")
@@ -49,10 +48,12 @@ dependencies {
         implementation("org.jboss.resteasy:resteasy-multipart-provider:6.2.4.Final")
         implementation("org.apache.kafka:kafka-clients:3.6.1")
         // Le tue dipendenze di progetto
-        implementation(project(":UserDataModule2"))
-        implementation(project(":GestioneMusei"))
-        implementation(project(":GestioneQuest"))
-        implementation(project(":GestioneOpere"))
+        implementation(project(":Grpc-api"))
+
+        //implementation(project(":UserDataModule2"))
+        //implementation(project(":GestioneMusei"))
+        //implementation(project(":GestioneQuest"))
+        //implementation(project(":GestioneOpere"))
         implementation(project(":Kafka"))
 
     // Dipendenze Protobuf e gRPC
