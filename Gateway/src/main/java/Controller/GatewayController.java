@@ -248,7 +248,7 @@ public class GatewayController {
             @QueryParam("longitudine") Double longitudine,
             @QueryParam("preferenze") String preferenze,
             @QueryParam("raggio") Integer raggio) {
-        return museiHandler.getMuseiRaccomandatiGrpc(userId, latitudine, longitudine, preferenze, raggio);
+        return museiHandler.getMuseiRaccomandati(userId, latitudine, longitudine, preferenze, raggio);
     }
 
     @GET

@@ -95,7 +95,7 @@ public class PuntiBonusViewModel extends AndroidViewModel {
         Log.d("PuntiBonusViewModel", "Fetching promotions...");
 
         OkHttpClient client = new OkHttpClient();
-        String url = "http://10.0.2.2:8080/gateway/api/users/promozioni";
+        String url = "http://10.0.2.2:8091/gateway/api/users/promozioni";
         Log.d("PuntiBonusViewModel", "Promotions URL: " + url);
 
         Request request = new Request.Builder()

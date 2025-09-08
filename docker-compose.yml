@@ -39,7 +39,6 @@ services:
     volumes:
       - zookeeper-data:/var/lib/zookeeper/data
       - zookeeper-log:/var/lib/zookeeper/log
-
     networks:
       - app_network
     restart: unless-stopped
@@ -84,13 +83,14 @@ services:
   # -------------------------------------------------------------
   # MODULI BACKEND
   # -------------------------------------------------------------
-  userdatamodule2_backend:
+  userdatamodule2-backend:
     build:
       context: ./UserDataModule2
       dockerfile: Dockerfile
     container_name: museoapp-userdatamodule2
     ports:
       - "8088:8085"
+      - "50053:50053"
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
@@ -106,14 +106,21 @@ services:
     networks:
       - app_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ln | grep :50053 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
-  gestionemusei_backend:
+  gestionemusei-backend:
     build:
       context: ./GestioneMusei
       dockerfile: Dockerfile
     container_name: museoapp-gestionemusei
     ports:
       - "8086:8085"
+      - "50055:50055"
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
@@ -129,14 +136,21 @@ services:
     networks:
       - app_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ln | grep :50055 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
-  gestioneopere_backend:
+  gestioneopere-backend:
     build:
       context: ./GestioneOpere
       dockerfile: Dockerfile
     container_name: museoapp-gestioneopere
     ports:
       - "8087:8085"
+      - "50052:50052"
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
@@ -152,14 +166,21 @@ services:
     networks:
       - app_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ln | grep :50052 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
-  gestionequest_backend:
+  gestionequest-backend:
     build:
       context: ./GestioneQuest
       dockerfile: Dockerfile
     container_name: museoapp-gestionequest
     ports:
       - "8089:8085"
+      - "50054:50054"
     environment:
       DB_HOST: mysql_db
       DB_PORT: 3306
@@ -175,6 +196,12 @@ services:
     networks:
       - app_network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -ln | grep :50054 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   gateway_backend:
     build:
@@ -190,22 +217,23 @@ services:
       DB_USER: luca
       DB_PASSWORD: luca
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      USER_MODULE_URL: http://userdatamodule2_backend:8085/
-      MUSEI_MODULE_URL: http://gestionemusei_backend:8085/
-      OPERE_MODULE_URL: http://gestioneopere_backend:8085/
-      QUEST_MODULE_URL: http://gestionequest_backend:8085/
+      # Variabili di ambiente per i servizi gRPC
+      USER_GRPC_HOST: userdatamodule2-backend
+      OPERE_GRPC_HOST: gestioneopere-backend
+      QUEST_GRPC_HOST: gestionequest-backend
+      MUSEI_GRPC_HOST: gestionemusei-backend
     depends_on:
       mysql_db:
         condition: service_healthy
       kafka:
         condition: service_healthy
-      userdatamodule2_backend:
+      userdatamodule2-backend:
         condition: service_started
-      gestionemusei_backend:
+      gestionemusei-backend:
         condition: service_started
-      gestioneopere_backend:
+      gestioneopere-backend:
         condition: service_started
-      gestionequest_backend:
+      gestionequest-backend:
         condition: service_started
     networks:
       - app_network

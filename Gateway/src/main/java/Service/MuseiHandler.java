@@ -3,6 +3,7 @@ package Service;
 import Util.KafkaMessageService;
 import Util.GrpcClientManager;
 import it.unisannio.musei.grpc.MuseiServiceGrpc;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.json.JSONObject;
 
@@ -55,11 +56,11 @@ public class MuseiHandler {
                     .build();
         }
     }
-
-    public Response getMuseiRaccomandatiGrpc(String userId, Double latitudine, Double longitudine,
-                                             String preferenze, Integer raggio) {
+/*
+    public Response getMuseiRaccomandati(String userId, Double latitudine, Double longitudine,
+                                         String preferenze, Integer raggio) {
         try {
-            LOGGER.info("gRPC GetMuseiRaccomandati request for userId: " + userId +
+            LOGGER.info("Kafka GetMuseiRaccomandati request for userId: " + userId +
                     " at position: " + latitudine + "," + longitudine);
 
             // Validazione preliminare dei campi obbligatori
@@ -75,8 +76,61 @@ public class MuseiHandler {
                         .build();
             }
 
-            // Ottieni lo stub gRPC dal manager
-            MuseiServiceGrpc.MuseiServiceBlockingStub museiStub = grpcClientManager.getMuseiStub();
+            // Genera un ID univoco per tracciare la richiesta
+            String requestId = UUID.randomUUID().toString();
+
+            // Costruisce il messaggio Kafka
+            JSONObject kafkaMessage = new JSONObject();
+            kafkaMessage.put("operation", "getMuseiRaccomandati");
+            kafkaMessage.put("requestId", requestId);
+            kafkaMessage.put("userId", userId);
+            kafkaMessage.put("latitudine", latitudine);
+            kafkaMessage.put("longitudine", longitudine);
+
+            // Aggiungi parametri opzionali se forniti
+            if (preferenze != null && !preferenze.isEmpty()) {
+                kafkaMessage.put("preferenze", preferenze);
+            }
+
+            if (raggio != null && raggio > 0) {
+                kafkaMessage.put("raggio", raggio);
+            } else {
+                kafkaMessage.put("raggio", 20); // default
+            }
+
+            kafkaMessage.put("timestamp", System.currentTimeMillis());
+
+            LOGGER.info("Messaggio Kafka inviato per getMuseiRaccomandati - RequestID: " + requestId);
+
+            // Invia la richiesta a Kafka e attende la risposta
+            return kafkaMessageService.sendKafkaRequestAndWait(KafkaMessageService.TOPIC_MUSEI_MODULE, "getMuseiRaccomandati", kafkaMessage);
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Errore nella preparazione della richiesta musei raccomandati: " + e.getMessage(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"message\": \"Errore interno nel recupero dei musei raccomandati: " + e.getMessage() + "\"}")
+                    .build();
+        }
+    }*/
+
+    public Response getMuseiRaccomandati(String userId, Double latitudine, Double longitudine,
+                                         String preferenze, Integer raggio) {
+        try {
+            LOGGER.info("REST GetMuseiRaccomandati request for userId: " + userId +
+                    " at position: " + latitudine + "," + longitudine);
+
+            // Validazione preliminare dei campi obbligatori
+            if (userId == null || userId.isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"UserId è obbligatorio.\"}")
+                        .build();
+            }
+
+            if (latitudine == null || longitudine == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"message\": \"Coordinate latitudine e longitudine sono obbligatorie.\"}")
+                        .build();
+            }
 
             // Costruisci la richiesta gRPC
             GetMuseiRaccomandatiRequest.Builder requestBuilder = GetMuseiRaccomandatiRequest.newBuilder()
@@ -97,14 +151,37 @@ public class MuseiHandler {
 
             GetMuseiRaccomandatiRequest request = requestBuilder.build();
 
-            // Esegui la chiamata gRPC sincrona
-            GetMuseiRaccomandatiResponse response = museiStub.getMuseiRaccomandati(request);
+            // Chiamata gRPC sincron
+
+            // Gestisci la risposta
+            GetMuseiRaccomandatiResponse response = grpcClientManager.getMuseiStub().getMuseiRaccomandati(request);
 
             // Gestisci la risposta
             if ("success".equals(response.getStatus())) {
                 LOGGER.info("gRPC GetMuseiRaccomandati successful for userId: " + userId);
+
+                // AGGIUNGI QUESTO: Verifica e sanitizza la risposta JSON
+                String jsonResponse = response.getJsonResponse();
+
+                // Log per debug
+                LOGGER.info("JSON Response length: " + jsonResponse.length());
+                LOGGER.info("JSON Response first 100 chars: " + jsonResponse.substring(0, Math.min(100, jsonResponse.length())));
+
+                // Verifica che sia un JSON valido
+                try {
+                    JSONObject testJson = new JSONObject(jsonResponse);
+                    LOGGER.info("JSON validation successful");
+                } catch (Exception jsonEx) {
+                    LOGGER.log(Level.SEVERE, "Invalid JSON from gRPC response", jsonEx);
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity("{\"message\": \"Invalid response format from service\"}")
+                            .build();
+                }
+
                 return Response.status(Response.Status.OK)
-                        .entity(response.getJsonResponse())
+                        .entity(jsonResponse)
+                        .header("Content-Type", "application/json") // AGGIUNGI ANCHE QUESTO
+                        .type(MediaType.APPLICATION_JSON)
                         .build();
             } else {
                 // Errore nella ricerca musei
@@ -131,6 +208,8 @@ public class MuseiHandler {
                     .build();
         }
     }
+
+
     public Response getDettaglioMuseo(String museoId, String userId) {
         try {
             // Genera un ID univoco per tracciare la richiesta e la risposta
