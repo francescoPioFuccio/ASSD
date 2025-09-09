@@ -1,0 +1,177 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: museoapp2
+  labels:
+    app: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      initContainers:
+        - name: wait-for-services
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Waiting for all backend services..."
+              
+              echo "Waiting for MySQL..."
+              until nc -z mysql-service 3306; do
+                echo "MySQL not ready, waiting..."
+                sleep 5
+              done
+              
+              echo "Waiting for Kafka..."
+              until nc -z kafka-service 29092; do
+                echo "Kafka not ready, waiting..."
+                sleep 5
+              done
+              
+              echo "Waiting for UserDataModule2..."
+              until nc -z userdatamodule2-service 50053; do
+                echo "UserDataModule2 gRPC not ready, waiting..."
+                sleep 10
+              done
+              
+              echo "Waiting for GestioneMusei..."
+              until nc -z gestionemusei-service 50055; do
+                echo "GestioneMusei gRPC not ready, waiting..."
+                sleep 10
+              done
+              
+              echo "Waiting for GestioneOpere..."
+              until nc -z gestioneopere-service 50052; do
+                echo "GestioneOpere gRPC not ready, waiting..."
+                sleep 10
+              done
+              
+              echo "Waiting for GestioneQuest..."
+              until nc -z gestionequest-service 50054; do
+                echo "GestioneQuest gRPC not ready, waiting..."
+                sleep 10
+              done
+              
+              echo "All services are ready!"
+      containers:
+        - name: gateway
+          image: ghcr.io/francescopiofuccio/assd/gateway:latest
+          ports:
+            - containerPort: 8085
+              name: http
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_PASSWORD
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+            - name: USER_GRPC_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: USER_GRPC_HOST
+            - name: OPERE_GRPC_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: OPERE_GRPC_HOST
+            - name: QUEST_GRPC_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: QUEST_GRPC_HOST
+            - name: MUSEI_GRPC_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: MUSEI_GRPC_HOST
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8085
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8085
+            initialDelaySeconds: 60
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: museoapp2
+spec:
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8085
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway-ingress
+  namespace: museoapp2
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: museoapp.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway-service
+                port:
+                  number: 8080

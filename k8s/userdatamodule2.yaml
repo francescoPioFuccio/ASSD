@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: userdatamodule2
+  namespace: museoapp2
+  labels:
+    app: userdatamodule2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: userdatamodule2
+  template:
+    metadata:
+      labels:
+        app: userdatamodule2
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      initContainers:
+        - name: wait-for-mysql
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Waiting for MySQL..."
+              until nc -z mysql-service 3306; do
+                echo "MySQL not ready, waiting..."
+                sleep 5
+              done
+              echo "MySQL is ready!"
+        - name: wait-for-kafka
+          image: busybox:1.35
+          command: ['sh', '-c']
+          args:
+            - |
+              echo "Waiting for Kafka..."
+              until nc -z kafka-service 29092; do
+                echo "Kafka not ready, waiting..."
+                sleep 5
+              done
+              echo "Kafka is ready!"
+      containers:
+        - name: userdatamodule2
+          image: ghcr.io/francescopiofuccio/assd/userdatamodule2:latest
+          ports:
+            - containerPort: 8085
+              name: http
+            - containerPort: 50053
+              name: grpc
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: DB_PASSWORD
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: KAFKA_BOOTSTRAP_SERVERS
+          livenessProbe:
+            tcpSocket:
+              port: 50053
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 8085
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: userdatamodule2-service
+  namespace: museoapp2
+spec:
+  selector:
+    app: userdatamodule2
+  ports:
+    - name: http
+      port: 8085
+      targetPort: 8085
+    - name: grpc
+      port: 50053
+      targetPort: 50053
+  type: ClusterIP

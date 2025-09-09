@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: museoapp2
+data:
+  # Database Configuration
+  DB_HOST: "mysql-service"
+  DB_PORT: "3306"
+  DB_NAME: "luca3"
+
+  # Kafka Configuration
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-service:29092"
+  ZOOKEEPER_CONNECT: "zookeeper-service:2181"
+
+  # gRPC Services Configuration
+  USER_GRPC_HOST: "userdatamodule2-service"
+  USER_GRPC_PORT: "50053"
+  OPERE_GRPC_HOST: "gestioneopere-service"
+  OPERE_GRPC_PORT: "50052"
+  QUEST_GRPC_HOST: "gestionequest-service"
+  QUEST_GRPC_PORT: "50054"
+  MUSEI_GRPC_HOST: "gestionemusei-service"
+  MUSEI_GRPC_PORT: "50055"
+
+  # WildFly Configuration
+  JBOSS_HTTP_PORT: "8085"
